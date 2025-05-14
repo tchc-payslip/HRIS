@@ -8,7 +8,12 @@ import {
   Banknote, 
   CalendarDays, 
   UserRound,
-  Menu
+  Users,
+  Calendar,
+  BriefCase,
+  Menu,
+  ChartBar,
+  ListTodo
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
@@ -17,14 +22,23 @@ const Layout = () => {
   const isMobile = useIsMobile();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
-  const navItems = [
+  // Employee self-service menu items
+  const employeeNavItems = [
     { to: "/profile", label: "Employee Profile", icon: <User className="w-4 h-4" /> },
-    { to: "/documents", label: "Documents", icon: <FileText className="w-4 h-4" /> },
     { to: "/attendance", label: "Time Attendance", icon: <Clock className="w-4 h-4" /> },
     { to: "/salary", label: "Salary", icon: <Wallet className="w-4 h-4" /> },
-    { to: "/budget", label: "Budget", icon: <Banknote className="w-4 h-4" /> },
     { to: "/shifts", label: "Shifts", icon: <CalendarDays className="w-4 h-4" /> },
-    { to: "/self-service", label: "Self-Service", icon: <UserRound className="w-4 h-4" /> }
+    { to: "/self-service", label: "Self-Service", icon: <UserRound className="w-4 h-4" /> },
+    { to: "/documents", label: "Documents", icon: <FileText className="w-4 h-4" /> }
+  ];
+
+  // HR personnel menu items
+  const hrNavItems = [
+    { to: "/hr/employee-management", label: "Employee Management", icon: <Users className="w-4 h-4" /> },
+    { to: "/hr/attendance-leave", label: "Attendance & Leave", icon: <Calendar className="w-4 h-4" /> },
+    { to: "/hr/payroll", label: "Payroll & Compensation", icon: <Wallet className="w-4 h-4" /> },
+    { to: "/hr/budget-planning", label: "Budget Planning", icon: <ChartBar className="w-4 h-4" /> },
+    { to: "/hr/budget-management", label: "Budget Management", icon: <Banknote className="w-4 h-4" /> }
   ];
 
   const toggleSidebar = () => {
@@ -60,18 +74,41 @@ const Layout = () => {
           transition-all duration-300 bg-white shadow-sm border-r border-gray-200
         `}>
           <div className={`flex flex-col h-full p-2`}>
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `hr-tab flex items-center py-2 px-2 rounded-md text-xs ${isActive ? 'active bg-hr-skyBlue/10 text-hr-brightBlue' : 'text-gray-600 hover:bg-gray-100'}`
-                }
-              >
-                <div className="mr-2">{item.icon}</div>
-                {!sidebarCollapsed && <span>{item.label}</span>}
-              </NavLink>
-            ))}
+            <div className="mb-2">
+              <p className={`text-xs font-semibold text-gray-500 mb-1 px-2 ${sidebarCollapsed ? 'hidden' : ''}`}>
+                Self Service
+              </p>
+              {employeeNavItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `hr-tab flex items-center py-2 px-2 rounded-md text-xs ${isActive ? 'active bg-hr-skyBlue/10 text-hr-brightBlue' : 'text-gray-600 hover:bg-gray-100'}`
+                  }
+                >
+                  <div className="mr-2">{item.icon}</div>
+                  {!sidebarCollapsed && <span>{item.label}</span>}
+                </NavLink>
+              ))}
+            </div>
+            
+            <div className="mb-2 mt-2">
+              <p className={`text-xs font-semibold text-gray-500 mb-1 px-2 ${sidebarCollapsed ? 'hidden' : ''}`}>
+                HR Administration
+              </p>
+              {hrNavItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `hr-tab flex items-center py-2 px-2 rounded-md text-xs ${isActive ? 'active bg-hr-skyBlue/10 text-hr-brightBlue' : 'text-gray-600 hover:bg-gray-100'}`
+                  }
+                >
+                  <div className="mr-2">{item.icon}</div>
+                  {!sidebarCollapsed && <span>{item.label}</span>}
+                </NavLink>
+              ))}
+            </div>
             
             <button 
               className="mt-auto flex items-center justify-center p-2 rounded-md hover:bg-gray-100 mb-4"

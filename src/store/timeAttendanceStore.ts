@@ -1,13 +1,15 @@
 
 import { create } from 'zustand';
 
-interface TimeRecord {
+export type TimeRecordStatus = 'present' | 'absent' | 'late' | 'leave';
+
+export interface TimeRecord {
   id: string;
   date: string;
-  clockIn: string;
-  clockOut: string;
+  clockIn: string | null;
+  clockOut: string | null;
   totalHours: number;
-  status: 'present' | 'absent' | 'late' | 'leave';
+  status: TimeRecordStatus;
   notes: string;
 }
 
@@ -22,159 +24,189 @@ interface TimeAttendanceState {
   requestLeave: (startDate: string, endDate: string, reason: string) => Promise<void>;
 }
 
-export const useTimeAttendanceStore = create<TimeAttendanceState>((set, get) => ({
-  records: [],
-  currentMonth: new Date().toISOString().slice(0, 7), // Format: YYYY-MM
-  isLoading: false,
-  error: null,
+export const useTimeAttendanceStore = create<TimeAttendanceState>((set) => {
+  const currentDate = new Date();
+  const currentMonthString = currentDate.toISOString().slice(0, 7); // Format: YYYY-MM
   
-  fetchRecords: async (month) => {
-    set({ isLoading: true, error: null, currentMonth: month });
+  return {
+    records: [],
+    currentMonth: currentMonthString,
+    isLoading: false,
+    error: null,
     
-    try {
-      // This would be a real API call in a production app
-      const today = new Date();
-      const mockRecords = Array.from({ length: 20 }, (_, i) => {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        
-        const clockIn = `${8 + Math.floor(Math.random() * 2)}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
-        const clockOutHour = 17 + Math.floor(Math.random() * 2);
-        const clockOut = `${clockOutHour}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`;
-        
-        const totalHours = clockOutHour - parseInt(clockIn.split(':')[0]) - (Math.random() > 0.7 ? 1 : 0);
-        
-        return {
-          id: `record-${i}`,
-          date: date.toISOString().split('T')[0],
-          clockIn,
-          clockOut,
-          totalHours,
-          status: Math.random() > 0.8 ? 'late' : 'present',
-          notes: '',
-        };
-      });
+    fetchRecords: async (month = currentMonthString) => {
+      set({ isLoading: true, error: null, currentMonth: month });
       
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      
-      set({ records: mockRecords, isLoading: false });
-    } catch (error) {
-      set({ error: 'Failed to fetch time records', isLoading: false });
-    }
-  },
-  
-  clockIn: async () => {
-    set({ isLoading: true, error: null });
-    
-    try {
-      // This would be a real API call in a production app
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      
-      const now = new Date();
-      const today = now.toISOString().split('T')[0];
-      const clockInTime = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-      
-      set((state) => {
-        const existingRecordIndex = state.records.findIndex(record => record.date === today);
-        
-        if (existingRecordIndex !== -1) {
-          const updatedRecords = [...state.records];
-          updatedRecords[existingRecordIndex] = {
-            ...updatedRecords[existingRecordIndex],
-            clockIn: clockInTime,
-          };
-          return { records: updatedRecords, isLoading: false };
-        } else {
-          const newRecord = {
-            id: `record-${Date.now()}`,
-            date: today,
-            clockIn: clockInTime,
-            clockOut: '',
-            totalHours: 0,
-            status: 'present',
-            notes: '',
-          };
-          return { records: [newRecord, ...state.records], isLoading: false };
-        }
-      });
-    } catch (error) {
-      set({ error: 'Failed to clock in', isLoading: false });
-    }
-  },
-  
-  clockOut: async () => {
-    set({ isLoading: true, error: null });
-    
-    try {
-      // This would be a real API call in a production app
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      
-      const now = new Date();
-      const today = now.toISOString().split('T')[0];
-      const clockOutTime = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-      
-      set((state) => {
-        const existingRecordIndex = state.records.findIndex(record => record.date === today);
-        
-        if (existingRecordIndex !== -1) {
-          const updatedRecords = [...state.records];
-          const record = updatedRecords[existingRecordIndex];
+      try {
+        // This would be a real API call in a production app
+        const mockRecords: TimeRecord[] = Array.from({ length: 20 }, (_, i) => {
+          const recordDate = new Date(month + `-${(i + 1).toString().padStart(2, '0')}`);
           
-          if (record.clockIn) {
-            const clockInHour = parseInt(record.clockIn.split(':')[0]);
-            const totalHours = now.getHours() - clockInHour;
+          if (recordDate > currentDate) return null;
+          
+          // Randomize some data for the mock
+          const isWeekend = [0, 6].includes(recordDate.getDay());
+          const randomStatus: TimeRecordStatus = isWeekend 
+            ? 'absent' 
+            : Math.random() > 0.8 
+              ? ['absent', 'late', 'leave'][Math.floor(Math.random() * 3)] as TimeRecordStatus
+              : 'present';
+              
+          const clockIn = randomStatus === 'present' || randomStatus === 'late' 
+            ? `${8 + (randomStatus === 'late' ? 1 : 0)}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')} AM` 
+            : null;
             
+          const clockOut = clockIn 
+            ? `${5 + Math.floor(Math.random() * 2)}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')} PM` 
+            : null;
+            
+          const totalHours = clockIn && clockOut ? 8 + Math.random() : 0;
+          
+          return {
+            id: `attendance-${month}-${i + 1}`,
+            date: recordDate.toISOString().split('T')[0],
+            clockIn,
+            clockOut,
+            totalHours,
+            status: randomStatus,
+            notes: randomStatus === 'leave' ? 'Personal leave' : '',
+          };
+        }).filter(Boolean) as TimeRecord[];
+        
+        // Simulate API delay
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        
+        set({ records: mockRecords, isLoading: false });
+      } catch (error) {
+        set({ error: 'Failed to fetch attendance records', isLoading: false });
+      }
+    },
+    
+    clockIn: async () => {
+      set({ isLoading: true, error: null });
+      
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const clockInTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        // This would be a real API call in a production app
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        
+        set((state) => {
+          const existingRecordIndex = state.records.findIndex(
+            (record) => record.date === today
+          );
+          
+          let updatedRecords;
+          
+          if (existingRecordIndex >= 0) {
+            updatedRecords = [...state.records];
             updatedRecords[existingRecordIndex] = {
-              ...record,
-              clockOut: clockOutTime,
-              totalHours,
+              ...updatedRecords[existingRecordIndex],
+              clockIn: clockInTime,
+              status: 'present' as TimeRecordStatus,
             };
+          } else {
+            const newRecord: TimeRecord = {
+              id: `attendance-${Date.now()}`,
+              date: today,
+              clockIn: clockInTime,
+              clockOut: null,
+              totalHours: 0,
+              status: 'present',
+              notes: '',
+            };
+            updatedRecords = [...state.records, newRecord];
           }
           
           return { records: updatedRecords, isLoading: false };
-        }
-        
-        return { isLoading: false };
-      });
-    } catch (error) {
-      set({ error: 'Failed to clock out', isLoading: false });
-    }
-  },
-  
-  requestLeave: async (startDate, endDate, reason) => {
-    set({ isLoading: true, error: null });
+        });
+      } catch (error) {
+        set({ error: 'Failed to clock in', isLoading: false });
+      }
+    },
     
-    try {
-      // This would be a real API call in a production app
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    clockOut: async () => {
+      set({ isLoading: true, error: null });
       
-      set((state) => {
-        // Create leave records for each day in the range
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const newRecords = [];
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const clockOutTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         
-        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-          const date = d.toISOString().split('T')[0];
-          newRecords.push({
-            id: `leave-${Date.now()}-${date}`,
-            date,
-            clockIn: '',
-            clockOut: '',
-            totalHours: 0,
-            status: 'leave',
-            notes: reason,
-          });
-        }
+        // This would be a real API call in a production app
+        await new Promise((resolve) => setTimeout(resolve, 500));
         
-        return {
-          records: [...newRecords, ...state.records],
-          isLoading: false,
-        };
-      });
-    } catch (error) {
-      set({ error: 'Failed to request leave', isLoading: false });
-    }
-  },
-}));
+        set((state) => {
+          const existingRecordIndex = state.records.findIndex(
+            (record) => record.date === today
+          );
+          
+          if (existingRecordIndex < 0) {
+            set({ error: 'No clock-in record found for today', isLoading: false });
+            return state;
+          }
+          
+          const updatedRecords = [...state.records];
+          const clockInTime = updatedRecords[existingRecordIndex].clockIn;
+          
+          if (!clockInTime) {
+            set({ error: 'No clock-in time found', isLoading: false });
+            return state;
+          }
+          
+          // Calculate total hours (simplified)
+          const totalHours = 8; // In a real app, calculate from clockIn and clockOut
+          
+          updatedRecords[existingRecordIndex] = {
+            ...updatedRecords[existingRecordIndex],
+            clockOut: clockOutTime,
+            totalHours,
+          };
+          
+          return { records: updatedRecords, isLoading: false };
+        });
+      } catch (error) {
+        set({ error: 'Failed to clock out', isLoading: false });
+      }
+    },
+    
+    requestLeave: async (startDate, endDate, reason) => {
+      set({ isLoading: true, error: null });
+      
+      try {
+        // This would be a real API call in a production app
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        
+        set((state) => {
+          // Create leave records for the date range
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          const leaveRecords: TimeRecord[] = [];
+          
+          for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+            const dateString = date.toISOString().split('T')[0];
+            
+            leaveRecords.push({
+              id: `leave-${Date.now()}-${dateString}`,
+              date: dateString,
+              clockIn: null,
+              clockOut: null,
+              totalHours: 0,
+              status: 'leave',
+              notes: reason,
+            });
+          }
+          
+          // Filter out any existing records for the leave dates
+          const filteredRecords = state.records.filter(
+            (record) => !leaveRecords.some((leave) => leave.date === record.date)
+          );
+          
+          return { records: [...filteredRecords, ...leaveRecords], isLoading: false };
+        });
+      } catch (error) {
+        set({ error: 'Failed to request leave', isLoading: false });
+      }
+    },
+  };
+});

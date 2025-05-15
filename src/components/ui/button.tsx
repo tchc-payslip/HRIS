@@ -13,7 +13,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-green-700 text-primary-foreground hover:bg-green-800",
+        default: "bg-[--theme-color] text-primary-foreground hover:bg-[--theme-color]/90",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
@@ -46,6 +46,11 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     // Apply theme color if it exists in localStorage
+    React.useEffect(() => {
+      const themeColor = getThemeColor();
+      document.documentElement.style.setProperty('--theme-color', themeColor);
+    }, []);
+    
     const Comp = asChild ? Slot : "button"
     return (
       <Comp

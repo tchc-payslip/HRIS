@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -45,17 +46,34 @@ const Settings = () => {
 
   const hasChanges = selectedColor !== initialColor || selectedLanguage !== initialLanguage;
   
+  // Apply color change immediately for preview
+  useEffect(() => {
+    // Update document style for preview
+    document.documentElement.style.setProperty('--theme-color', selectedColor);
+  }, [selectedColor]);
+  
   const handleSave = () => {
     // Save settings to localStorage
     localStorage.setItem('theme-color', selectedColor);
     localStorage.setItem('language', selectedLanguage);
     
-    // Apply theme color to the document
-    document.documentElement.style.setProperty('--theme-color', selectedColor);
-    
     toast({
       title: "Settings saved",
       description: "Your preferences have been updated."
+    });
+  };
+  
+  const handleCancel = () => {
+    // Reset to initial values
+    setSelectedColor(initialColor);
+    setSelectedLanguage(initialLanguage);
+    
+    // Apply initial color back
+    document.documentElement.style.setProperty('--theme-color', initialColor);
+    
+    toast({
+      title: "Changes canceled",
+      description: "Your changes have been discarded."
     });
   };
 
@@ -70,13 +88,13 @@ const Settings = () => {
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <h2 className="text-2xl font-bold">Settings</h2>
+        <h2 className="text-xl font-bold">Settings</h2>
       </div>
       
       <div className="space-y-8">
         {/* Theme Color Section */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Appearance</h3>
+          <h3 className="text-base font-semibold mb-4">Appearance</h3>
           
           <div className="space-y-4">
             <div className="grid gap-2">
@@ -112,7 +130,7 @@ const Settings = () => {
         
         {/* Language Section */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h3 className="text-lg font-semibold mb-4">Language</h3>
+          <h3 className="text-base font-semibold mb-4">Language</h3>
           
           <div className="space-y-4">
             <div className="grid gap-2">
@@ -136,12 +154,19 @@ const Settings = () => {
           </div>
         </div>
         
-        {/* Save Button */}
-        <div className="flex justify-end">
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-3">
+          <Button 
+            onClick={handleCancel} 
+            variant="outline"
+            disabled={!hasChanges}
+          >
+            Cancel
+          </Button>
           <Button 
             onClick={handleSave} 
             disabled={!hasChanges}
-            className="bg-green-700 hover:bg-green-800"
+            className={`bg-${selectedColor} hover:bg-${selectedColor}`}
           >
             Save Changes
           </Button>

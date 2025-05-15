@@ -28,8 +28,6 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Index />} />
@@ -48,9 +46,13 @@ const App = () => (
           <Route path="hr/payroll" element={<PayrollCompensation />} />
           <Route path="hr/budget-planning" element={<BudgetPlanning />} />
           <Route path="hr/budget-management" element={<BudgetManagement />} />
+          
+          {/* Redirect any unknown paths to 404 */}
+          <Route path="*" element={<NotFound />} />
         </Route>
-        <Route path="*" element={<NotFound />} />
       </Routes>
+      <Toaster />
+      <Sonner />
     </TooltipProvider>
   </QueryClientProvider>
 );

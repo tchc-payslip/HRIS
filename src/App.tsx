@@ -3,10 +3,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
+import Settings from "./pages/Settings";
 
 // Employee self-service components
 import EmployeeProfile from "./components/EmployeeProfile/EmployeeProfile";
@@ -46,6 +47,9 @@ const App = () => (
           <Route path="hr/payroll" element={<PayrollCompensation />} />
           <Route path="hr/budget-planning" element={<BudgetPlanning />} />
           <Route path="hr/budget-management" element={<BudgetManagement />} />
+          
+          {/* Settings Page */}
+          <Route path="settings" element={<Settings />} />
           
           {/* Redirect any unknown paths to 404 */}
           <Route path="*" element={<NotFound />} />

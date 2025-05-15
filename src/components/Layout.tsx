@@ -7,11 +7,10 @@ import {
   Clock, 
   Wallet, 
   Banknote, 
-  CalendarDays, 
   UserRound,
   Users,
   Calendar,
-  BriefCase,
+  Briefcase,
   Menu,
   ChartBar,
   ListTodo,
@@ -19,23 +18,26 @@ import {
   Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Layout = () => {
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const location = useLocation();
+  const currentPath = location.pathname;
+  const mainSection = currentPath.split('/')[1] || 'profile';
   
-  // Employee self-service menu items
-  const employeeNavItems = [
+  // Employee self-service menu items (for tabs)
+  const employeeTabItems = [
     { to: "/profile", label: "Profile", icon: <User className="w-5 h-5" /> },
     { to: "/attendance", label: "Attendance", icon: <Clock className="w-5 h-5" /> },
     { to: "/salary", label: "Salary", icon: <Wallet className="w-5 h-5" /> },
-    { to: "/shifts", label: "Shift", icon: <CalendarDays className="w-5 h-5" /> },
+    { to: "/shifts", label: "Shift", icon: <Calendar className="w-5 h-5" /> },
     { to: "/self-service", label: "Self-service", icon: <UserRound className="w-5 h-5" /> },
     { to: "/documents", label: "Documents", icon: <FileText className="w-5 h-5" /> }
   ];
 
-  // HR personnel menu items
-  const hrNavItems = [
+  // HR personnel menu items (for tabs)
+  const hrTabItems = [
     { to: "/hr/employee-management", label: "Employee Management", icon: <Users className="w-5 h-5" /> },
     { to: "/hr/attendance-leave", label: "Attendance & Leave", icon: <Calendar className="w-5 h-5" /> },
     { to: "/hr/payroll", label: "Payroll & Compensation", icon: <Wallet className="w-5 h-5" /> },
@@ -52,10 +54,14 @@ const Layout = () => {
     setSidebarExpanded(false);
   };
 
+  // Determine if we're in the HR section or Personal section
+  const isHrSection = currentPath.startsWith('/hr');
+  const currentTabItems = isHrSection ? hrTabItems : employeeTabItems;
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-green-700 py-3 px-4 text-white shadow-md flex justify-between items-center">
+      <header className="bg-green-700 py-3 px-4 text-white shadow-md flex justify-between items-center z-10">
         <div className="flex items-center">
           <h1 className="font-bold text-lg">HR Management System</h1>
         </div>
@@ -70,10 +76,10 @@ const Layout = () => {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
+        {/* Sidebar - only contains Personal and HR Core sections */}
         <div 
           className={cn(
-            "bg-white shadow-md z-10 flex flex-col transition-all duration-300 ease-in-out",
+            "bg-white shadow-md z-20 flex flex-col transition-all duration-300 ease-in-out fixed h-[calc(100vh-56px)]",
             sidebarExpanded ? "w-52" : "w-14"
           )}
           onMouseEnter={expandSidebar}
@@ -87,31 +93,26 @@ const Layout = () => {
             )}>
               Personal
             </p>
-            <div className="flex flex-col space-y-1">
-              {employeeNavItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) => cn(
-                    "flex items-center py-2 px-2 rounded-md transition-colors",
-                    isActive 
-                      ? "bg-green-700 text-white" 
-                      : "text-gray-700 hover:bg-gray-100",
-                    !sidebarExpanded && "justify-center"
-                  )}
-                >
-                  <div className="flex items-center">
-                    {item.icon}
-                    <span className={cn(
-                      "ml-2 text-sm transition-all",
-                      sidebarExpanded ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"
-                    )}>
-                      {item.label}
-                    </span>
-                  </div>
-                </NavLink>
-              ))}
-            </div>
+            <NavLink
+              to="/profile"
+              className={({ isActive }) => cn(
+                "flex items-center py-2 px-2 rounded-md transition-colors",
+                isActive || (!isHrSection) 
+                  ? "bg-green-700 text-white" 
+                  : "text-gray-700 hover:bg-gray-100",
+                !sidebarExpanded && "justify-center"
+              )}
+            >
+              <div className="flex items-center">
+                <User className="w-5 h-5" />
+                <span className={cn(
+                  "ml-2 text-sm transition-all",
+                  sidebarExpanded ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"
+                )}>
+                  Personal
+                </span>
+              </div>
+            </NavLink>
           </div>
 
           {/* HR Core section */}
@@ -122,38 +123,57 @@ const Layout = () => {
             )}>
               HR Core
             </p>
-            <div className="flex flex-col space-y-1">
-              {hrNavItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) => cn(
-                    "flex items-center py-2 px-2 rounded-md transition-colors",
-                    isActive 
-                      ? "bg-green-700 text-white" 
-                      : "text-gray-700 hover:bg-gray-100",
-                    !sidebarExpanded && "justify-center"
-                  )}
-                >
-                  <div className="flex items-center">
-                    {item.icon}
-                    <span className={cn(
-                      "ml-2 text-sm transition-all",
-                      sidebarExpanded ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"
-                    )}>
-                      {item.label}
-                    </span>
-                  </div>
-                </NavLink>
-              ))}
-            </div>
+            <NavLink
+              to="/hr/employee-management"
+              className={({ isActive }) => cn(
+                "flex items-center py-2 px-2 rounded-md transition-colors",
+                isActive || (isHrSection)
+                  ? "bg-green-700 text-white" 
+                  : "text-gray-700 hover:bg-gray-100",
+                !sidebarExpanded && "justify-center"
+              )}
+            >
+              <div className="flex items-center">
+                <Briefcase className="w-5 h-5" />
+                <span className={cn(
+                  "ml-2 text-sm transition-all",
+                  sidebarExpanded ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"
+                )}>
+                  HR Core
+                </span>
+              </div>
+            </NavLink>
           </div>
         </div>
 
-        {/* Main content */}
-        <div className="flex-1 overflow-auto p-5">
-          <div className="bg-white rounded-lg shadow-sm p-5 min-h-full">
-            <Outlet />
+        {/* Main content - with fixed position */}
+        <div className="flex-1 overflow-auto ml-14 bg-gray-50">
+          {/* Tabbed Navigation */}
+          <div className="bg-white border-b sticky top-0 z-10 py-2 px-4">
+            <Tabs defaultValue={location.pathname} className="w-full">
+              <TabsList className="w-full flex overflow-x-auto pb-1 scrollbar-hide">
+                {currentTabItems.map((item) => (
+                  <TabsTrigger 
+                    key={item.to}
+                    value={item.to}
+                    className="flex items-center"
+                    onClick={() => window.location.href = item.to}
+                    data-active={item.to === location.pathname}
+                  >
+                    <div className="flex items-center">
+                      <span className="mr-2">{item.icon}</span>
+                      <span>{item.label}</span>
+                    </div>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+          
+          <div className="p-5">
+            <div className="bg-white rounded-lg shadow-sm p-5 min-h-full">
+              <Outlet />
+            </div>
           </div>
         </div>
       </div>

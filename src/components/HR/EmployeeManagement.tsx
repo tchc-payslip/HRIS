@@ -114,7 +114,7 @@ const EmployeeManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Employee Management</h1>
+        <h1 className="text-xl font-semibold">Employee Management</h1>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
           Add Employee
@@ -142,7 +142,7 @@ const EmployeeManagement = () => {
                     <SelectValue placeholder="All Departments" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Departments</SelectItem>
+                    <SelectItem value="all-departments">All Departments</SelectItem>
                     {departments.map(dept => (
                       <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                     ))}

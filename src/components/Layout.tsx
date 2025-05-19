@@ -67,7 +67,7 @@ const Layout = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header - thinner */}
-      <header className={`bg-${themeColor} py-1.5 px-4 text-white shadow-md flex justify-between items-center z-10`}>
+      <header className={`bg-[--theme-color] py-1.5 px-4 text-white shadow-md flex justify-between items-center z-10`}>
         <div className="flex items-center">
           <h1 className="font-bold text-base">HR Management System</h1>
         </div>
@@ -115,7 +115,7 @@ const Layout = () => {
                     className={({ isActive }) => cn(
                       "flex items-center justify-center py-2 px-2 rounded-md transition-colors",
                       isActive || (!isHrSection && !isSettingsPage) 
-                        ? `bg-${themeColor} text-white` 
+                        ? `bg-[--theme-color] text-white` 
                         : "text-gray-700 hover:bg-gray-100"
                     )}
                   >
@@ -142,7 +142,7 @@ const Layout = () => {
                     className={({ isActive }) => cn(
                       "flex items-center justify-center py-2 px-2 rounded-md transition-colors",
                       isActive || (isHrSection && !isSettingsPage)
-                        ? `bg-${themeColor} text-white` 
+                        ? `bg-[--theme-color] text-white` 
                         : "text-gray-700 hover:bg-gray-100"
                     )}
                   >
@@ -162,7 +162,7 @@ const Layout = () => {
           {/* Tabbed Navigation - only show for Personal and HR sections */}
           {!isSettingsPage && (
             <div className="bg-white border-b sticky top-0 z-10 py-1 px-4">
-              <Tabs defaultValue={location.pathname} className="w-full">
+              <Tabs defaultValue={currentTabItems[0].to} className="w-full">
                 <TabsList className="w-full flex overflow-x-auto pb-1 scrollbar-hide">
                   {currentTabItems.map((item) => (
                     <TabsTrigger 
@@ -170,7 +170,6 @@ const Layout = () => {
                       value={item.to}
                       className="flex items-center"
                       onClick={() => navigate(item.to)}
-                      data-active={item.to === location.pathname}
                     >
                       <div className="flex items-center">
                         <span className="mr-2">{item.icon}</span>

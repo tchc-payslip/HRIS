@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -166,7 +165,6 @@ const Settings = () => {
           <Button 
             onClick={handleSave} 
             disabled={!hasChanges}
-            className={`bg-${selectedColor} hover:bg-${selectedColor}`}
           >
             Save Changes
           </Button>

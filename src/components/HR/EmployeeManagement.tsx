@@ -1,93 +1,63 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, Download, Plus } from "lucide-react";
-
-// Mock employee data
-const mockEmployees = [
-  {
-    id: "001",
-    name: "Jane Doe",
-    job_title: "HR Manager",
-    department: "Human Resources",
-    hire_date: "2020-06-15",
-    email: "jane.doe@company.com",
-    phone: "(555) 123-4567",
-    status: "Active",
-    manager: "John Smith"
-  },
-  {
-    id: "002",
-    name: "Michael Johnson",
-    job_title: "Software Developer",
-    department: "Engineering",
-    hire_date: "2021-03-22",
-    email: "michael.johnson@company.com",
-    phone: "(555) 234-5678",
-    status: "Active",
-    manager: "Sarah Williams"
-  },
-  {
-    id: "003",
-    name: "Emily Davis",
-    job_title: "Marketing Specialist",
-    department: "Marketing",
-    hire_date: "2019-11-05",
-    email: "emily.davis@company.com",
-    phone: "(555) 345-6789",
-    status: "On Leave",
-    manager: "David Brown"
-  },
-  {
-    id: "004",
-    name: "Robert Wilson",
-    job_title: "Financial Analyst",
-    department: "Finance",
-    hire_date: "2022-01-10",
-    email: "robert.wilson@company.com",
-    phone: "(555) 456-7890",
-    status: "Active",
-    manager: "Jennifer Taylor"
-  },
-  {
-    id: "005",
-    name: "Lisa Anderson",
-    job_title: "Customer Support",
-    department: "Support",
-    hire_date: "2020-09-18",
-    email: "lisa.anderson@company.com",
-    phone: "(555) 567-8901",
-    status: "Inactive",
-    manager: "Mark Thomas"
-  },
-];
+import ColumnSelectionDialog from "./ColumnSelectionDialog";
+import RowActionMenu from "./RowActionMenu";
+import { fetchEmployees, Employee } from "@/services/employeeService";
+import { useToast } from "@/hooks/use-toast";
 
 const EmployeeManagement = () => {
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedColumns, setSelectedColumns] = useState([
-    "name", 
-    "job_title", 
+    "employee_name",
+    "title", 
     "department", 
-    "hire_date", 
+    "contract_start_date_cv", 
     "email"
   ]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDepartment, setFilterDepartment] = useState("");
+  const { toast } = useToast();
   
+  // Define available columns
   const availableColumns = [
-    { id: "name", label: "Name" },
-    { id: "job_title", label: "Job Title" },
+    { id: "employee_name", label: "Name" },
+    { id: "title", label: "Job Title" },
     { id: "department", label: "Department" },
-    { id: "hire_date", label: "Hire Date" },
+    { id: "contract_start_date_cv", label: "Hire Date" },
     { id: "email", label: "Email" },
-    { id: "phone", label: "Phone" },
-    { id: "status", label: "Status" },
-    { id: "manager", label: "Manager" },
+    { id: "phone_number", label: "Phone" },
+    { id: "employmentType", label: "Employment Type" },
+    { id: "nationality", label: "Nationality" },
   ];
+  
+  // Load employees from Supabase
+  useEffect(() => {
+    const loadEmployees = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchEmployees();
+        setEmployees(data);
+      } catch (error) {
+        console.error("Failed to load employees:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load employee data",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadEmployees();
+  }, [toast]);
   
   const handleColumnToggle = (columnId: string) => {
     if (selectedColumns.includes(columnId)) {
@@ -97,10 +67,12 @@ const EmployeeManagement = () => {
     }
   };
   
-  const filteredEmployees = mockEmployees.filter(employee => {
+  const filteredEmployees = employees.filter(employee => {
     const matchesSearch = searchTerm === "" || 
       Object.values(employee).some(value => 
-        value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+        value && 
+        typeof value === 'string' && 
+        value.toLowerCase().includes(searchTerm.toLowerCase())
       );
     
     const matchesDepartment = filterDepartment === "" || 
@@ -109,7 +81,28 @@ const EmployeeManagement = () => {
     return matchesSearch && matchesDepartment;
   });
   
-  const departments = Array.from(new Set(mockEmployees.map(emp => emp.department)));
+  const departments = Array.from(new Set(employees.map(emp => emp.department || ""))).filter(Boolean);
+
+  // Placeholder functions
+  const handleEdit = (employeeId: string) => {
+    toast({ description: `Edit employee ${employeeId}` });
+  };
+
+  const handleDelete = (employeeId: string) => {
+    toast({ description: `Delete employee ${employeeId}` });
+  };
+
+  const handleFunction1 = (employeeId: string) => {
+    toast({ description: `Function 1 for employee ${employeeId}` });
+  };
+
+  const handleFunction2 = (employeeId: string) => {
+    toast({ description: `Function 2 for employee ${employeeId}` });
+  };
+
+  const handleFunction3 = (employeeId: string) => {
+    toast({ description: `Function 3 for employee ${employeeId}` });
+  };
   
   return (
     <div className="space-y-6">
@@ -142,8 +135,8 @@ const EmployeeManagement = () => {
                     <SelectValue placeholder="All Departments" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all-departments">All Departments</SelectItem>
-                    {departments.map(dept => (
+                    <SelectItem value="">All Departments</SelectItem>
+                    {departments.map(dept => dept && (
                       <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                     ))}
                   </SelectContent>
@@ -154,41 +147,37 @@ const EmployeeManagement = () => {
                 <Download className="mr-2 h-4 w-4" />
                 Export
               </Button>
+
+              <ColumnSelectionDialog
+                columns={availableColumns}
+                selectedColumns={selectedColumns}
+                onColumnToggle={handleColumnToggle}
+              />
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium">Show columns:</span>
-            {availableColumns.map(column => (
-              <div key={column.id} className="flex items-center space-x-2">
-                <Checkbox 
-                  id={`column-${column.id}`} 
-                  checked={selectedColumns.includes(column.id)}
-                  onCheckedChange={() => handleColumnToggle(column.id)}
-                />
-                <label 
-                  htmlFor={`column-${column.id}`}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  {column.label}
-                </label>
-              </div>
-            ))}
-          </div>
-          
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[60px]">Actions</TableHead>
                   {availableColumns.filter(col => selectedColumns.includes(col.id)).map(column => (
                     <TableHead key={column.id}>{column.label}</TableHead>
                   ))}
-                  <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEmployees.length === 0 ? (
+                {loading ? (
+                  <TableRow>
+                    <TableCell 
+                      colSpan={selectedColumns.length + 1}
+                      className="text-center py-6 text-gray-500"
+                    >
+                      Loading employee data...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredEmployees.length === 0 ? (
                   <TableRow>
                     <TableCell 
                       colSpan={selectedColumns.length + 1}
@@ -200,22 +189,26 @@ const EmployeeManagement = () => {
                 ) : (
                   filteredEmployees.map((employee) => (
                     <TableRow key={employee.id}>
+                      <TableCell>
+                        <RowActionMenu
+                          onEdit={() => handleEdit(employee.id)}
+                          onDelete={() => handleDelete(employee.id)}
+                          onFunction1={() => handleFunction1(employee.id)}
+                          onFunction2={() => handleFunction2(employee.id)}
+                          onFunction3={() => handleFunction3(employee.id)}
+                        />
+                      </TableCell>
                       {availableColumns.filter(col => selectedColumns.includes(col.id)).map(column => {
-                        const value = employee[column.id as keyof typeof employee];
+                        const key = column.id as keyof Employee;
+                        const value = employee[key];
                         return (
                           <TableCell key={`${employee.id}-${column.id}`}>
-                            {column.id === 'hire_date' 
-                              ? new Date(value).toLocaleDateString() 
-                              : value}
+                            {column.id === 'contract_start_date_cv' && value 
+                              ? new Date(value as string).toLocaleDateString() 
+                              : String(value || '-')}
                           </TableCell>
                         );
                       })}
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="sm">Edit</Button>
-                          <Button variant="ghost" size="sm" className="text-red-500">Delete</Button>
-                        </div>
-                      </TableCell>
                     </TableRow>
                   ))
                 )}

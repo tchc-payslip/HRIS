@@ -22,7 +22,7 @@ const EmployeeManagement = () => {
     "email"
   ]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterDepartment, setFilterDepartment] = useState("");
+  const [filterDepartment, setFilterDepartment] = useState("all");
   const { toast } = useToast();
   
   // Define available columns
@@ -75,7 +75,7 @@ const EmployeeManagement = () => {
         value.toLowerCase().includes(searchTerm.toLowerCase())
       );
     
-    const matchesDepartment = filterDepartment === "" || 
+    const matchesDepartment = filterDepartment === "all" || 
       employee.department === filterDepartment;
     
     return matchesSearch && matchesDepartment;
@@ -135,7 +135,7 @@ const EmployeeManagement = () => {
                     <SelectValue placeholder="All Departments" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Departments</SelectItem>
+                    <SelectItem value="all">All Departments</SelectItem>
                     {departments.map(dept => dept && (
                       <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                     ))}

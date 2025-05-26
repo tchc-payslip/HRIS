@@ -66,6 +66,11 @@ const Layout = () => {
   // Get the theme color from localStorage
   const themeColor = localStorage.getItem('theme-color') || 'green-700';
 
+  // Get the current active tab value based on the current path
+  const getCurrentActiveTab = () => {
+    return currentPath;
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header - thinner */}
@@ -164,18 +169,22 @@ const Layout = () => {
           {/* Tabbed Navigation - only show for Personal and HR sections */}
           {!isSettingsPage && (
             <div className="bg-white border-b sticky top-0 z-10 py-1 px-4">
-              <Tabs defaultValue={currentTabItems[0].to} className="w-full">
-                <TabsList className="w-full flex overflow-x-auto pb-1 scrollbar-hide">
+              <Tabs value={getCurrentActiveTab()} className="w-full">
+                <TabsList className="w-full flex overflow-x-auto pb-1 scrollbar-hide bg-transparent h-auto p-0 space-x-1">
                   {currentTabItems.map((item) => (
                     <TabsTrigger 
                       key={item.to}
                       value={item.to}
-                      className="flex items-center"
+                      className={cn(
+                        "flex items-center px-3 py-2 rounded-md text-sm transition-colors",
+                        "data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:font-bold",
+                        "data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-gray-900 data-[state=inactive]:hover:bg-gray-50"
+                      )}
                       onClick={() => navigate(item.to)}
                     >
                       <div className="flex items-center">
                         <span className="mr-2">{item.icon}</span>
-                        <span className="text-sm">{item.label}</span>
+                        <span>{item.label}</span>
                       </div>
                     </TabsTrigger>
                   ))}

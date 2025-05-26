@@ -1,192 +1,129 @@
 
 import { create } from 'zustand';
 
-export type ExpenseStatus = 'pending' | 'approved' | 'rejected';
-
-export interface Expense {
-  id: string;
-  date: string;
-  category: string;
-  description: string;
-  amount: number;
-  status: ExpenseStatus;
-}
-
-export interface BudgetCategory {
+export interface Budget {
   id: string;
   name: string;
-  allocated: number;
+  amount: number;
   spent: number;
+  category: string;
+  period: 'monthly' | 'quarterly' | 'yearly';
+  startDate: string;
+  endDate: string;
+  description?: string;
 }
 
 interface BudgetState {
-  totalBudget: number;
-  totalSpent: number;
-  categories: BudgetCategory[];
-  expenses: Expense[];
+  budgets: Budget[];
   isLoading: boolean;
   error: string | null;
-  fetchBudget: () => Promise<void>;
-  addExpense: (expense: Omit<Expense, 'id' | 'status'>) => Promise<void>;
-  updateExpenseStatus: (id: string, status: ExpenseStatus) => Promise<void>;
+  fetchBudgets: () => Promise<void>;
+  addBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
+  updateBudget: (id: string, budget: Partial<Budget>) => Promise<void>;
+  deleteBudget: (id: string) => Promise<void>;
+  setBudgets: (budgets: Budget[]) => void;
 }
 
-export const useBudgetStore = create<BudgetState>((set) => ({
-  totalBudget: 0,
-  totalSpent: 0,
-  categories: [],
-  expenses: [],
+export const useBudgetStore = create<BudgetState>((set, get) => ({
+  budgets: [],
   isLoading: false,
   error: null,
-  
-  fetchBudget: async () => {
+
+  fetchBudgets: async () => {
     set({ isLoading: true, error: null });
     
     try {
-      // This would be a real API call in a production app
-      const mockCategories: BudgetCategory[] = [
-        { id: '1', name: 'Equipment', allocated: 25000, spent: 18500 },
-        { id: '2', name: 'Training', allocated: 15000, spent: 8200 },
-        { id: '3', name: 'Office Supplies', allocated: 5000, spent: 3700 },
-        { id: '4', name: 'Software Subscriptions', allocated: 12000, spent: 10800 },
-        { id: '5', name: 'Travel', allocated: 8000, spent: 2100 },
-      ];
-      
-      const totalBudget = mockCategories.reduce((sum, category) => sum + category.allocated, 0);
-      const totalSpent = mockCategories.reduce((sum, category) => sum + category.spent, 0);
-      
-      const mockExpenses: Expense[] = [
+      // Mock data - replace with actual API call
+      const mockBudgets: Budget[] = [
         {
           id: '1',
-          date: '2023-04-15',
-          category: 'Equipment',
-          description: 'New monitors for design team',
-          amount: 3500,
-          status: 'approved',
+          name: 'HR Training Budget',
+          amount: 50000,
+          spent: 15000,
+          category: 'Training',
+          period: 'yearly',
+          startDate: '2024-01-01',
+          endDate: '2024-12-31',
+          description: 'Annual training budget for HR department'
         },
         {
           id: '2',
-          date: '2023-04-20',
-          category: 'Training',
-          description: 'React conference tickets',
-          amount: 2200,
-          status: 'approved',
-        },
-        {
-          id: '3',
-          date: '2023-04-25',
-          category: 'Software Subscriptions',
-          description: 'Adobe Creative Cloud annual',
-          amount: 4800,
-          status: 'approved',
-        },
-        {
-          id: '4',
-          date: '2023-05-02',
-          category: 'Equipment',
-          description: 'Ergonomic office chairs',
-          amount: 2800,
-          status: 'pending',
-        },
-        {
-          id: '5',
-          date: '2023-05-10',
-          category: 'Travel',
-          description: 'Client meeting in Boston',
-          amount: 1200,
-          status: 'pending',
-        },
-        {
-          id: '6',
-          date: '2023-05-15',
-          category: 'Office Supplies',
-          description: 'Quarterly office supplies',
-          amount: 950,
-          status: 'rejected',
-        },
-      ];
-      
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      
-      set({
-        totalBudget,
-        totalSpent,
-        categories: mockCategories,
-        expenses: mockExpenses,
-        isLoading: false,
-      });
-    } catch (error) {
-      set({ error: 'Failed to fetch budget data', isLoading: false });
-    }
-  },
-  
-  addExpense: async (expense) => {
-    set({ isLoading: true, error: null });
-    
-    try {
-      // This would be a real API call in a production app
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      
-      const newExpense: Expense = {
-        ...expense,
-        id: Math.random().toString(36).substring(2, 11),
-        status: 'pending',
-      };
-      
-      set((state) => {
-        // Find the category of this expense
-        const categoryIndex = state.categories.findIndex(
-          (cat) => cat.name === expense.category
-        );
-        
-        if (categoryIndex >= 0) {
-          // Update the spent amount for this category
-          const updatedCategories = [...state.categories];
-          updatedCategories[categoryIndex] = {
-            ...updatedCategories[categoryIndex],
-            spent: updatedCategories[categoryIndex].spent + expense.amount,
-          };
-          
-          const updatedTotalSpent = state.totalSpent + expense.amount;
-          
-          return {
-            expenses: [...state.expenses, newExpense],
-            categories: updatedCategories,
-            totalSpent: updatedTotalSpent,
-            isLoading: false,
-          };
+          name: 'Office Supplies',
+          amount: 5000,
+          spent: 2300,
+          category: 'Operations',
+          period: 'monthly',
+          startDate: '2024-01-01',
+          endDate: '2024-01-31',
+          description: 'Monthly office supplies budget'
         }
-        
-        return {
-          expenses: [...state.expenses, newExpense],
-          isLoading: false,
-        };
-      });
+      ];
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      set({ budgets: mockBudgets, isLoading: false });
     } catch (error) {
-      set({ error: 'Failed to add expense', isLoading: false });
+      set({ error: 'Failed to fetch budgets', isLoading: false });
     }
   },
-  
-  updateExpenseStatus: async (id, status) => {
+
+  addBudget: async (budgetData) => {
     set({ isLoading: true, error: null });
     
     try {
-      // This would be a real API call in a production app
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const newBudget: Budget = {
+        ...budgetData,
+        id: Date.now().toString(),
+      };
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      set((state) => {
-        const updatedExpenses = state.expenses.map((expense) =>
-          expense.id === id ? { ...expense, status } : expense
-        );
-        
-        return {
-          expenses: updatedExpenses,
-          isLoading: false,
-        };
-      });
+      set(state => ({
+        budgets: [...state.budgets, newBudget],
+        isLoading: false
+      }));
     } catch (error) {
-      set({ error: 'Failed to update expense status', isLoading: false });
+      set({ error: 'Failed to add budget', isLoading: false });
     }
+  },
+
+  updateBudget: async (id, budgetData) => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      set(state => ({
+        budgets: state.budgets.map(budget =>
+          budget.id === id ? { ...budget, ...budgetData } : budget
+        ),
+        isLoading: false
+      }));
+    } catch (error) {
+      set({ error: 'Failed to update budget', isLoading: false });
+    }
+  },
+
+  deleteBudget: async (id) => {
+    set({ isLoading: true, error: null });
+    
+    try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      set(state => ({
+        budgets: state.budgets.filter(budget => budget.id !== id),
+        isLoading: false
+      }));
+    } catch (error) {
+      set({ error: 'Failed to delete budget', isLoading: false });
+    }
+  },
+
+  setBudgets: (budgets) => {
+    set({ budgets });
   },
 }));

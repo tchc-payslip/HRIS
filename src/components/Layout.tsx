@@ -12,7 +12,8 @@ import {
   Calendar,
   Briefcase,
   ChartBar,
-  Bell
+  Bell,
+  ClockIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -52,6 +53,7 @@ const Layout = () => {
   // HR personnel menu items (for tabs)
   const hrTabItems = [
     { to: "/hr/employee-management", label: "Employee Management", icon: <Users className="w-5 h-5" /> },
+    { to: "/hr/raw-attendance", label: "Raw Attendance", icon: <ClockIcon className="w-5 h-5" /> },
     { to: "/hr/attendance-leave", label: "Attendance & Leave", icon: <Calendar className="w-5 h-5" /> },
     { to: "/hr/payroll", label: "Payroll", icon: <Wallet className="w-5 h-5" /> },
     { to: "/hr/budget-planning", label: "Budget Planning", icon: <ChartBar className="w-5 h-5" /> },

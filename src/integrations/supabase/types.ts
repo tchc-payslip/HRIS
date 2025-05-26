@@ -138,6 +138,32 @@ export type Database = {
         }
         Relationships: []
       }
+      raw_attendance: {
+        Row: {
+          device_sn: string
+          employee_id: number | null
+          timestamp: string
+        }
+        Insert: {
+          device_sn: string
+          employee_id?: number | null
+          timestamp: string
+        }
+        Update: {
+          device_sn?: string
+          employee_id?: number | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "raw_attendance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_information"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

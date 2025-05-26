@@ -19,6 +19,7 @@ import SelfService from "./components/SelfService/SelfService";
 
 // HR management components
 import EmployeeManagement from "./components/HR/EmployeeManagement";
+import RawAttendance from "./components/HR/RawAttendance";
 import AttendanceLeaveManagement from "./components/HR/AttendanceLeaveManagement";
 import PayrollCompensation from "./components/HR/PayrollCompensation";
 import BudgetPlanning from "./components/HR/BudgetPlanning";
@@ -43,6 +44,7 @@ const App = () => (
           
           {/* HR Administration Routes */}
           <Route path="hr/employee-management" element={<EmployeeManagement />} />
+          <Route path="hr/raw-attendance" element={<RawAttendance />} />
           <Route path="hr/attendance-leave" element={<AttendanceLeaveManagement />} />
           <Route path="hr/payroll" element={<PayrollCompensation />} />
           <Route path="hr/budget-planning" element={<BudgetPlanning />} />

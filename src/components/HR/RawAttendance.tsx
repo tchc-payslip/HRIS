@@ -185,13 +185,13 @@ const RawAttendance = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-full flex flex-col">
       <div className="flex justify-between items-center">
         <h1 className="text-xl font-semibold">Raw Attendance</h1>
       </div>
       
-      <Card>
-        <CardHeader className="pb-3">
+      <Card className="flex-1 flex flex-col">
+        <CardHeader className="pb-3 flex-shrink-0">
           <div className="flex flex-col gap-4">
             {/* Search and Export Row */}
             <div className="flex items-center justify-between gap-4">
@@ -213,6 +213,7 @@ const RawAttendance = () => {
               <RawAttendanceExport filteredRecords={filteredRecords} />
             </div>
 
+            {/* Inline Pagination and Rows Per Page */}
             <RawAttendancePagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -222,29 +223,21 @@ const RawAttendance = () => {
               endIndex={endIndex}
               onPageChange={handlePageChange}
               onRowsPerPageChange={handleRowsPerPageChange}
+              variant="inline"
             />
           </div>
         </CardHeader>
-        <CardContent>
-          <RawAttendanceTable
-            loading={loading}
-            currentRecords={currentRecords}
-          />
-
-          {totalPages > 1 && (
-            <div className="mt-4">
-              <RawAttendancePagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                rowsPerPage={rowsPerPage}
-                filteredRecordsCount={filteredRecords.length}
-                startIndex={startIndex}
-                endIndex={endIndex}
-                onPageChange={handlePageChange}
-                onRowsPerPageChange={handleRowsPerPageChange}
+        
+        <CardContent className="flex-1 flex flex-col min-h-0">
+          {/* Scrollable Table Container */}
+          <div className="flex-1 overflow-hidden border rounded-md">
+            <div className="h-full overflow-auto">
+              <RawAttendanceTable
+                loading={loading}
+                currentRecords={currentRecords}
               />
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
     </div>

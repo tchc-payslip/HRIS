@@ -34,10 +34,6 @@ const TimeAttendance = () => {
   
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-semibold">Time & Attendance</h1>
-      </div>
-      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <ClockCard 
           todayRecord={todayRecord} 

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { TimeRecord } from '@/store/timeAttendanceStore';
 
 interface AttendanceTableProps {
@@ -53,30 +54,34 @@ const AttendanceTable = ({ records, isLoading, currentMonth, onChangeMonth, getS
             <p className="text-gray-500">No attendance records found for this month</p>
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Clock In</TableHead>
-                <TableHead>Clock Out</TableHead>
-                <TableHead>Total Hours</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Notes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {records.map((record) => (
-                <TableRow key={record.id}>
-                  <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
-                  <TableCell>{record.clockIn || '-'}</TableCell>
-                  <TableCell>{record.clockOut || '-'}</TableCell>
-                  <TableCell>{record.totalHours > 0 ? `${record.totalHours} hrs` : '-'}</TableCell>
-                  <TableCell>{getStatusBadge(record.status)}</TableCell>
-                  <TableCell className="max-w-xs truncate">{record.notes || '-'}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="border rounded-md">
+            <ScrollArea className="h-[calc(100vh-400px)]">
+              <Table>
+                <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
+                  <TableRow>
+                    <TableHead className="bg-white border-b">Date</TableHead>
+                    <TableHead className="bg-white border-b">Clock In</TableHead>
+                    <TableHead className="bg-white border-b">Clock Out</TableHead>
+                    <TableHead className="bg-white border-b">Total Hours</TableHead>
+                    <TableHead className="bg-white border-b">Status</TableHead>
+                    <TableHead className="bg-white border-b">Notes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {records.map((record) => (
+                    <TableRow key={record.id}>
+                      <TableCell>{new Date(record.date).toLocaleDateString()}</TableCell>
+                      <TableCell>{record.clockIn || '-'}</TableCell>
+                      <TableCell>{record.clockOut || '-'}</TableCell>
+                      <TableCell>{record.totalHours > 0 ? `${record.totalHours} hrs` : '-'}</TableCell>
+                      <TableCell>{getStatusBadge(record.status)}</TableCell>
+                      <TableCell className="max-w-xs truncate">{record.notes || '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </div>
         )}
       </CardContent>
     </Card>

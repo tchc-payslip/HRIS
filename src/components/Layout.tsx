@@ -74,17 +74,17 @@ const Layout = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header - thinner */}
-      <header className={`bg-[--theme-color] py-1.5 px-4 text-white shadow-md flex justify-between items-center z-10`}>
+      <header className={`bg-green-700 py-1.5 px-4 text-white shadow-md flex justify-between items-center z-10`}>
         <div className="flex items-center">
-          <h1 className="font-bold text-base">HR Management System</h1>
+          <h1 className="font-bold text-base text-white">HR Management System</h1>
         </div>
         <div className="flex items-center space-x-4">
           {/* Notification icon */}
-          <Bell className="w-4 h-4 cursor-pointer hover:text-gray-200" />
+          <Bell className="w-4 h-4 cursor-pointer hover:text-gray-200 text-white" />
           
           {/* Account dropdown */}
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center space-x-1 cursor-pointer hover:text-gray-200">
+            <DropdownMenuTrigger className="flex items-center space-x-1 cursor-pointer hover:text-gray-200 text-white">
               <UserRound className="w-4 h-4" />
               <span className="hidden md:inline text-sm">Jane Doe</span>
             </DropdownMenuTrigger>
@@ -110,17 +110,17 @@ const Layout = () => {
         {/* Sidebar - icons only with tooltips */}
         <div className="bg-white shadow-md z-20 flex flex-col w-14 fixed h-[calc(100vh-40px)]">
           {/* Personal section */}
-          <div className="px-2 py-3">
+          <div className="px-2 py-2">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <NavLink
                     to="/profile"
-                    className={({ isActive }) => cn(
+                    className={cn(
                       "flex items-center justify-center py-2 px-2 rounded-md transition-colors w-10 h-10 mx-auto",
-                      isActive || (!isHrSection && !isSettingsPage) 
-                        ? "bg-gray-700 text-white font-bold"
-                        : "text-gray-700 hover:bg-gray-100"
+                      (!isHrSection && !isSettingsPage)
+                        ? "bg-gray-600 text-white font-bold"
+                        : "text-gray-600 hover:bg-gray-100"
                     )}
                   >
                     <User className="w-5 h-5" />
@@ -140,11 +140,11 @@ const Layout = () => {
                 <TooltipTrigger asChild>
                   <NavLink
                     to="/hr/employee-management"
-                    className={({ isActive }) => cn(
+                    className={cn(
                       "flex items-center justify-center py-2 px-2 rounded-md transition-colors w-10 h-10 mx-auto",
-                      isActive || (isHrSection && !isSettingsPage)
-                        ? "bg-gray-700 text-white font-bold"
-                        : "text-gray-700 hover:bg-gray-100"
+                      (isHrSection && !isSettingsPage)
+                        ? "bg-gray-600 text-white font-bold"
+                        : "text-gray-600 hover:bg-gray-100"
                     )}
                   >
                     <Briefcase className="w-5 h-5" />
@@ -170,10 +170,10 @@ const Layout = () => {
                       key={item.to}
                       value={item.to}
                       className={cn(
-                        "flex items-center px-3 py-2 rounded-md text-sm transition-colors",
+                        "flex items-center px-3 py-2 rounded-md text-sm transition-colors border",
                         currentPath === item.to
-                          ? "bg-gray-700 text-white font-bold"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                          ? "bg-gray-700 text-white font-bold border-gray-700"
+                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-transparent"
                       )}
                       onClick={() => navigate(item.to)}
                     >

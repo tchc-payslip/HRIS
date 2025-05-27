@@ -1,6 +1,7 @@
 
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface RawAttendanceRecord {
   device_sn: string;
@@ -28,54 +29,56 @@ const RawAttendanceTable: React.FC<RawAttendanceTableProps> = ({
   };
 
   return (
-    <div className="relative">
-      <Table>
-        <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
-          <TableRow>
-            <TableHead className="bg-white">Employee ID</TableHead>
-            <TableHead className="bg-white">Employee Name</TableHead>
-            <TableHead className="bg-white">Department</TableHead>
-            <TableHead className="bg-white">Date</TableHead>
-            <TableHead className="bg-white">Time</TableHead>
-            <TableHead className="bg-white">Device SN</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {loading ? (
+    <div className="relative border rounded-md">
+      <ScrollArea className="h-[calc(100vh-280px)]">
+        <Table>
+          <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
             <TableRow>
-              <TableCell 
-                colSpan={6}
-                className="text-center py-6 text-gray-500"
-              >
-                Loading raw attendance data...
-              </TableCell>
+              <TableHead className="bg-white border-b">Employee ID</TableHead>
+              <TableHead className="bg-white border-b">Employee Name</TableHead>
+              <TableHead className="bg-white border-b">Department</TableHead>
+              <TableHead className="bg-white border-b">Date</TableHead>
+              <TableHead className="bg-white border-b">Time</TableHead>
+              <TableHead className="bg-white border-b">Device SN</TableHead>
             </TableRow>
-          ) : currentRecords.length === 0 ? (
-            <TableRow>
-              <TableCell 
-                colSpan={6}
-                className="text-center py-6 text-gray-500"
-              >
-                No attendance records found
-              </TableCell>
-            </TableRow>
-          ) : (
-            currentRecords.map((record, index) => {
-              const { date, time } = formatDateTime(record.timestamp);
-              return (
-                <TableRow key={`${record.device_sn}-${record.timestamp}-${index}`}>
-                  <TableCell>{record.employee_id || '-'}</TableCell>
-                  <TableCell>{record.employee_name || '-'}</TableCell>
-                  <TableCell>{record.department || '-'}</TableCell>
-                  <TableCell>{date}</TableCell>
-                  <TableCell>{time}</TableCell>
-                  <TableCell>{record.device_sn}</TableCell>
-                </TableRow>
-              );
-            })
-          )}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell 
+                  colSpan={6}
+                  className="text-center py-6 text-gray-500"
+                >
+                  Loading raw attendance data...
+                </TableCell>
+              </TableRow>
+            ) : currentRecords.length === 0 ? (
+              <TableRow>
+                <TableCell 
+                  colSpan={6}
+                  className="text-center py-6 text-gray-500"
+                >
+                  No attendance records found
+                </TableCell>
+              </TableRow>
+            ) : (
+              currentRecords.map((record, index) => {
+                const { date, time } = formatDateTime(record.timestamp);
+                return (
+                  <TableRow key={`${record.device_sn}-${record.timestamp}-${index}`}>
+                    <TableCell>{record.employee_id || '-'}</TableCell>
+                    <TableCell>{record.employee_name || '-'}</TableCell>
+                    <TableCell>{record.department || '-'}</TableCell>
+                    <TableCell>{date}</TableCell>
+                    <TableCell>{time}</TableCell>
+                    <TableCell>{record.device_sn}</TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </ScrollArea>
     </div>
   );
 };

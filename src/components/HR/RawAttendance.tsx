@@ -186,16 +186,12 @@ const RawAttendance = () => {
   };
 
   return (
-    <div className="space-y-6 h-full flex flex-col">
-      <div className="flex justify-between items-center">
-        <h1 className="text-xl font-semibold">Raw Attendance</h1>
-      </div>
-      
+    <div className="space-y-4 h-full flex flex-col">
       <Card className="flex-1 flex flex-col min-h-0">
         <CardHeader className="pb-3 flex-shrink-0">
           <div className="flex flex-col gap-4">
-            {/* Search and Export Row */}
-            <div className="flex items-center justify-between gap-4">
+            {/* Single Row: Search and Date Range Filters with Export */}
+            <div className="flex items-center justify-between gap-4 flex-wrap">
               <div className="flex-1">
                 <RawAttendanceFilters
                   searchTerm={searchTerm}
@@ -230,9 +226,9 @@ const RawAttendance = () => {
         </CardHeader>
         
         <CardContent className="flex-1 flex flex-col min-h-0 p-0">
-          {/* Scrollable Table Container with Fixed Height */}
+          {/* Scrollable Table Container that stretches to viewport bottom */}
           <div className="flex-1 border-t">
-            <ScrollArea className="h-[600px]">
+            <ScrollArea className="h-[calc(100vh-280px)]">
               <div className="p-6">
                 <RawAttendanceTable
                   loading={loading}

@@ -28,16 +28,16 @@ const RawAttendanceTable: React.FC<RawAttendanceTableProps> = ({
   };
 
   return (
-    <div className="overflow-x-auto">
+    <div className="relative">
       <Table>
-        <TableHeader>
+        <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
           <TableRow>
-            <TableHead>Employee ID</TableHead>
-            <TableHead>Employee Name</TableHead>
-            <TableHead>Department</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Time</TableHead>
-            <TableHead>Device SN</TableHead>
+            <TableHead className="bg-white">Employee ID</TableHead>
+            <TableHead className="bg-white">Employee Name</TableHead>
+            <TableHead className="bg-white">Department</TableHead>
+            <TableHead className="bg-white">Date</TableHead>
+            <TableHead className="bg-white">Time</TableHead>
+            <TableHead className="bg-white">Device SN</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

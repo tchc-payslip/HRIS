@@ -54,20 +54,20 @@ const RawAttendanceFilters: React.FC<RawAttendanceFiltersProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Search Row */}
-      <div className="flex items-center gap-2 flex-1">
-        <Search className="h-4 w-4 text-gray-400" />
-        <Input
-          placeholder="Search by employee ID, name, department, or device..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-md"
-        />
-      </div>
-
-      {/* Date Range Filters Row */}
+    <div className="flex flex-col gap-3">
+      {/* Single Row: Search and Date Range Filters */}
       <div className="flex items-center gap-4 flex-wrap">
+        {/* Search */}
+        <div className="flex items-center gap-2 min-w-80">
+          <Search className="h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Search by employee ID, name, department, or device..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1"
+          />
+        </div>
+
         {/* Quick Filters */}
         <div className="flex items-center gap-2">
           <Button
@@ -75,7 +75,7 @@ const RawAttendanceFilters: React.FC<RawAttendanceFiltersProps> = ({
             size="sm"
             onClick={() => onQuickFilter("this-week")}
             className={cn(
-              quickFilter === "this-week" && "bg-gray-800 text-white font-bold hover:bg-gray-700"
+              quickFilter === "this-week" && "bg-gray-700 text-white font-bold hover:bg-gray-600"
             )}
           >
             This Week
@@ -85,7 +85,7 @@ const RawAttendanceFilters: React.FC<RawAttendanceFiltersProps> = ({
             size="sm"
             onClick={() => onQuickFilter("this-month")}
             className={cn(
-              quickFilter === "this-month" && "bg-gray-800 text-white font-bold hover:bg-gray-700"
+              quickFilter === "this-month" && "bg-gray-700 text-white font-bold hover:bg-gray-600"
             )}
           >
             This Month
@@ -95,7 +95,7 @@ const RawAttendanceFilters: React.FC<RawAttendanceFiltersProps> = ({
             size="sm"
             onClick={() => onQuickFilter("this-year")}
             className={cn(
-              quickFilter === "this-year" && "bg-gray-800 text-white font-bold hover:bg-gray-700"
+              quickFilter === "this-year" && "bg-gray-700 text-white font-bold hover:bg-gray-600"
             )}
           >
             This Year
@@ -109,7 +109,7 @@ const RawAttendanceFilters: React.FC<RawAttendanceFiltersProps> = ({
               variant="outline" 
               className={cn(
                 "gap-2",
-                quickFilter === "custom" && "bg-gray-800 text-white font-bold hover:bg-gray-700"
+                quickFilter === "custom" && "bg-gray-700 text-white font-bold hover:bg-gray-600"
               )}
             >
               <CalendarRange className="h-4 w-4" />
@@ -139,7 +139,7 @@ const RawAttendanceFilters: React.FC<RawAttendanceFiltersProps> = ({
               variant="outline" 
               className={cn(
                 "gap-2",
-                quickFilter === "custom-month" && "bg-gray-800 text-white font-bold hover:bg-gray-700"
+                quickFilter === "custom-month" && "bg-gray-700 text-white font-bold hover:bg-gray-600"
               )}
             >
               <Calendar className="h-4 w-4" />

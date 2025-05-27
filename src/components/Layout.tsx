@@ -119,7 +119,7 @@ const Layout = () => {
                     className={({ isActive }) => cn(
                       "flex items-center justify-center py-2 px-2 rounded-md transition-colors w-10 h-10 mx-auto",
                       isActive || (!isHrSection && !isSettingsPage) 
-                        ? "bg-gray-800 text-white font-bold"
+                        ? "bg-gray-700 text-white font-bold"
                         : "text-gray-700 hover:bg-gray-100"
                     )}
                   >
@@ -143,7 +143,7 @@ const Layout = () => {
                     className={({ isActive }) => cn(
                       "flex items-center justify-center py-2 px-2 rounded-md transition-colors w-10 h-10 mx-auto",
                       isActive || (isHrSection && !isSettingsPage)
-                        ? "bg-gray-800 text-white font-bold"
+                        ? "bg-gray-700 text-white font-bold"
                         : "text-gray-700 hover:bg-gray-100"
                     )}
                   >
@@ -172,7 +172,7 @@ const Layout = () => {
                       className={cn(
                         "flex items-center px-3 py-2 rounded-md text-sm transition-colors",
                         currentPath === item.to
-                          ? "bg-gray-800 text-white font-bold"
+                          ? "bg-gray-700 text-white font-bold"
                           : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                       )}
                       onClick={() => navigate(item.to)}

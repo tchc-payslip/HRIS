@@ -110,19 +110,16 @@ const Layout = () => {
         {/* Sidebar - icons only with tooltips */}
         <div className="bg-white shadow-md z-20 flex flex-col w-14 fixed h-[calc(100vh-40px)]">
           {/* Personal section */}
-          <div className="px-2 py-4">
-            <p className="text-xs font-semibold text-gray-500 mb-2 px-2 opacity-0 h-0">
-              Personal
-            </p>
+          <div className="px-2 py-3">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <NavLink
                     to="/profile"
                     className={({ isActive }) => cn(
-                      "flex items-center justify-center py-2 px-2 rounded-md transition-colors",
+                      "flex items-center justify-center py-2 px-2 rounded-md transition-colors w-10 h-10 mx-auto",
                       isActive || (!isHrSection && !isSettingsPage) 
-                        ? `bg-[--theme-color] text-white` 
+                        ? "bg-gray-800 text-white font-bold"
                         : "text-gray-700 hover:bg-gray-100"
                     )}
                   >
@@ -137,19 +134,16 @@ const Layout = () => {
           </div>
 
           {/* HR Core section */}
-          <div className="px-2 py-2">
-            <p className="text-xs font-semibold text-gray-500 mb-2 px-2 opacity-0 h-0">
-              HR Core
-            </p>
+          <div className="px-2 py-1">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <NavLink
                     to="/hr/employee-management"
                     className={({ isActive }) => cn(
-                      "flex items-center justify-center py-2 px-2 rounded-md transition-colors",
+                      "flex items-center justify-center py-2 px-2 rounded-md transition-colors w-10 h-10 mx-auto",
                       isActive || (isHrSection && !isSettingsPage)
-                        ? `bg-[--theme-color] text-white` 
+                        ? "bg-gray-800 text-white font-bold"
                         : "text-gray-700 hover:bg-gray-100"
                     )}
                   >
@@ -177,8 +171,9 @@ const Layout = () => {
                       value={item.to}
                       className={cn(
                         "flex items-center px-3 py-2 rounded-md text-sm transition-colors",
-                        "data-[state=active]:bg-gray-100 data-[state=active]:text-gray-900 data-[state=active]:font-bold",
-                        "data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-gray-900 data-[state=inactive]:hover:bg-gray-50"
+                        currentPath === item.to
+                          ? "bg-gray-800 text-white font-bold"
+                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                       )}
                       onClick={() => navigate(item.to)}
                     >

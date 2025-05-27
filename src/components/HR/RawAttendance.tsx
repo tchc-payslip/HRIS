@@ -8,6 +8,7 @@ import RawAttendanceFilters from "./RawAttendanceFilters";
 import RawAttendanceTable from "./RawAttendanceTable";
 import RawAttendancePagination from "./RawAttendancePagination";
 import RawAttendanceExport from "./RawAttendanceExport";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface RawAttendanceRecord {
   device_sn: string;
@@ -190,7 +191,7 @@ const RawAttendance = () => {
         <h1 className="text-xl font-semibold">Raw Attendance</h1>
       </div>
       
-      <Card className="flex-1 flex flex-col">
+      <Card className="flex-1 flex flex-col min-h-0">
         <CardHeader className="pb-3 flex-shrink-0">
           <div className="flex flex-col gap-4">
             {/* Search and Export Row */}
@@ -228,15 +229,17 @@ const RawAttendance = () => {
           </div>
         </CardHeader>
         
-        <CardContent className="flex-1 flex flex-col min-h-0">
-          {/* Scrollable Table Container */}
-          <div className="flex-1 overflow-hidden border rounded-md">
-            <div className="h-full overflow-auto">
-              <RawAttendanceTable
-                loading={loading}
-                currentRecords={currentRecords}
-              />
-            </div>
+        <CardContent className="flex-1 flex flex-col min-h-0 p-0">
+          {/* Scrollable Table Container with Fixed Height */}
+          <div className="flex-1 border-t">
+            <ScrollArea className="h-[600px]">
+              <div className="p-6">
+                <RawAttendanceTable
+                  loading={loading}
+                  currentRecords={currentRecords}
+                />
+              </div>
+            </ScrollArea>
           </div>
         </CardContent>
       </Card>

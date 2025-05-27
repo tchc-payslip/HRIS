@@ -62,9 +62,6 @@ const Layout = () => {
 
   // Get the appropriate tab items based on section
   const currentTabItems = isHrSection ? hrTabItems : employeeTabItems;
-  
-  // Get the theme color from localStorage
-  const themeColor = localStorage.getItem('theme-color') || 'green-700';
 
   // Get the current active tab value based on the current path
   const getCurrentActiveTab = () => {
@@ -73,8 +70,8 @@ const Layout = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header - thinner */}
-      <header className={`bg-green-700 py-1.5 px-4 text-white shadow-md flex justify-between items-center z-10`}>
+      {/* Header - changed to dark gray with white text */}
+      <header className="bg-gray-800 py-1.5 px-4 text-white shadow-md flex justify-between items-center z-10">
         <div className="flex items-center">
           <h1 className="font-bold text-base text-white">HR Management System</h1>
         </div>
@@ -82,23 +79,23 @@ const Layout = () => {
           {/* Notification icon */}
           <Bell className="w-4 h-4 cursor-pointer hover:text-gray-200 text-white" />
           
-          {/* Account dropdown */}
+          {/* Account dropdown - showing employee 1009 */}
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center space-x-1 cursor-pointer hover:text-gray-200 text-white">
               <UserRound className="w-4 h-4" />
-              <span className="hidden md:inline text-sm">Jane Doe</span>
+              <span className="hidden md:inline text-sm">Employee 1009</span>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuContent align="end" className="bg-white border border-gray-200 shadow-lg">
+              <DropdownMenuItem className="cursor-pointer text-gray-700">
                 Account Details
               </DropdownMenuItem>
               <DropdownMenuItem 
-                className="cursor-pointer" 
+                className="cursor-pointer text-gray-700" 
                 onClick={() => navigate('/settings')}
               >
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer text-gray-700">
                 Log out
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -126,7 +123,7 @@ const Layout = () => {
                     <User className="w-5 h-5" />
                   </NavLink>
                 </TooltipTrigger>
-                <TooltipContent side="right">
+                <TooltipContent side="right" className="bg-gray-800 text-white">
                   <p>Personal</p>
                 </TooltipContent>
               </Tooltip>
@@ -150,7 +147,7 @@ const Layout = () => {
                     <Briefcase className="w-5 h-5" />
                   </NavLink>
                 </TooltipTrigger>
-                <TooltipContent side="right">
+                <TooltipContent side="right" className="bg-gray-800 text-white">
                   <p>HR Core</p>
                 </TooltipContent>
               </Tooltip>

@@ -33,8 +33,8 @@ const TimeAttendance = () => {
   const getStatusBadge = (status: string) => <StatusBadge status={status as any} />;
   
   return (
-    <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <ClockCard 
           todayRecord={todayRecord} 
           onClockIn={clockIn} 
@@ -45,13 +45,13 @@ const TimeAttendance = () => {
         <LeaveRequestCard onRequestLeave={requestLeave} />
       </div>
       
-      <Tabs defaultValue="attendance">
+      <Tabs defaultValue="attendance" className="w-full">
         <TabsList className="mb-6">
           <TabsTrigger value="attendance">Attendance History</TabsTrigger>
           <TabsTrigger value="leaves">Leave History</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="attendance">
+        <TabsContent value="attendance" className="mt-0">
           <AttendanceTable 
             records={records}
             isLoading={isLoading}
@@ -61,7 +61,7 @@ const TimeAttendance = () => {
           />
         </TabsContent>
         
-        <TabsContent value="leaves">
+        <TabsContent value="leaves" className="mt-0">
           <LeaveTable records={records} />
         </TabsContent>
       </Tabs>

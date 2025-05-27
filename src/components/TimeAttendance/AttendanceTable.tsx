@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TimeRecord } from '@/store/timeAttendanceStore';
@@ -24,12 +24,8 @@ const AttendanceTable = ({ records, isLoading, currentMonth, onChangeMonth, getS
   });
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Attendance History</CardTitle>
-          <CardDescription>View your past attendance records</CardDescription>
-        </div>
+    <Card className="h-full">
+      <CardHeader className="flex flex-row items-center justify-end pb-3">
         <div className="w-48">
           <select
             className="w-full border border-gray-300 rounded-md p-2"
@@ -44,7 +40,7 @@ const AttendanceTable = ({ records, isLoading, currentMonth, onChangeMonth, getS
           </select>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         {isLoading ? (
           <div className="flex justify-center items-center h-32">
             <p className="text-lg text-gray-500">Loading attendance records...</p>

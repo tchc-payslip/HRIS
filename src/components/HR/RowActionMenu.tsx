@@ -12,7 +12,7 @@ import { MoreVertical } from "lucide-react";
 interface RowActionMenuProps {
   onEdit: () => void;
   onDelete: () => void;
-  onFunction1?: () => void;
+  onViewDetails?: () => void;
   onFunction2?: () => void;
   onFunction3?: () => void;
 }
@@ -20,7 +20,7 @@ interface RowActionMenuProps {
 const RowActionMenu: React.FC<RowActionMenuProps> = ({
   onEdit,
   onDelete,
-  onFunction1,
+  onViewDetails,
   onFunction2,
   onFunction3
 }) => {
@@ -32,7 +32,7 @@ const RowActionMenu: React.FC<RowActionMenuProps> = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={onFunction1}>Function 1</DropdownMenuItem>
+        <DropdownMenuItem onClick={onViewDetails}>View details</DropdownMenuItem>
         <DropdownMenuItem onClick={onFunction2}>Function 2</DropdownMenuItem>
         <DropdownMenuItem onClick={onFunction3}>Function 3</DropdownMenuItem>
         <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>

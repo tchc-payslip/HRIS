@@ -9,8 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      employee_documents: {
+        Row: {
+          document_type: Database["public"]["Enums"]["document_type"]
+          employee_id: number
+          id: number
+          status: Database["public"]["Enums"]["document_status"]
+          supabase_storage_path: string
+          tenant_id: number
+          updated_at: string
+          uploaded_at: string
+        }
+        Insert: {
+          document_type: Database["public"]["Enums"]["document_type"]
+          employee_id: number
+          id?: number
+          status?: Database["public"]["Enums"]["document_status"]
+          supabase_storage_path: string
+          tenant_id: number
+          updated_at?: string
+          uploaded_at?: string
+        }
+        Update: {
+          document_type?: Database["public"]["Enums"]["document_type"]
+          employee_id?: number
+          id?: number
+          status?: Database["public"]["Enums"]["document_status"]
+          supabase_storage_path?: string
+          tenant_id?: number
+          updated_at?: string
+          uploaded_at?: string
+        }
+        Relationships: []
+      }
       employee_information: {
         Row: {
+          auth_id: string | null
           bank: string | null
           bank_account: string | null
           bank_branch: string | null
@@ -53,6 +87,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          auth_id?: string | null
           bank?: string | null
           bank_account?: string | null
           bank_branch?: string | null
@@ -95,6 +130,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          auth_id?: string | null
           bank?: string | null
           bank_account?: string | null
           bank_branch?: string | null
@@ -164,6 +200,27 @@ export type Database = {
           },
         ]
       }
+      tenants: {
+        Row: {
+          created_at: string
+          id: number
+          name: string
+          subscription_plan: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          name: string
+          subscription_plan?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          name?: string
+          subscription_plan?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -172,7 +229,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      document_status: "Active" | "Inactive"
+      document_type: "CV" | "Academic Certificate" | "Personal Documents"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -287,6 +345,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      document_status: ["Active", "Inactive"],
+      document_type: ["CV", "Academic Certificate", "Personal Documents"],
+    },
   },
 } as const

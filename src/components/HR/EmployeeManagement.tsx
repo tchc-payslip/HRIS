@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Filter, Download, Plus } from "lucide-react";
 import ColumnSelectionDialog from "./ColumnSelectionDialog";
 import RowActionMenu from "./RowActionMenu";
+import EmployeeHRCard from "./EmployeeHRCard";
 import { fetchEmployees, Employee } from "@/services/employeeService";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,6 +23,8 @@ const EmployeeManagement = () => {
   ]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDepartment, setFilterDepartment] = useState("all");
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  const [isHRCardOpen, setIsHRCardOpen] = useState(false);
   const { toast } = useToast();
   
   // Define available columns
@@ -84,16 +86,17 @@ const EmployeeManagement = () => {
   const departments = Array.from(new Set(employees.map(emp => emp.department || ""))).filter(Boolean);
 
   // Placeholder functions
+  const handleViewDetails = (employeeId: string) => {
+    setSelectedEmployeeId(employeeId);
+    setIsHRCardOpen(true);
+  };
+
   const handleEdit = (employeeId: string) => {
     toast({ description: `Edit employee ${employeeId}` });
   };
 
   const handleDelete = (employeeId: string) => {
     toast({ description: `Delete employee ${employeeId}` });
-  };
-
-  const handleFunction1 = (employeeId: string) => {
-    toast({ description: `Function 1 for employee ${employeeId}` });
   };
 
   const handleFunction2 = (employeeId: string) => {
@@ -107,7 +110,6 @@ const EmployeeManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-xl font-semibold">Employee Management</h1>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
           Add Employee
@@ -191,9 +193,9 @@ const EmployeeManagement = () => {
                     <TableRow key={employee.id}>
                       <TableCell>
                         <RowActionMenu
+                          onViewDetails={() => handleViewDetails(employee.id)}
                           onEdit={() => handleEdit(employee.id)}
                           onDelete={() => handleDelete(employee.id)}
-                          onFunction1={() => handleFunction1(employee.id)}
                           onFunction2={() => handleFunction2(employee.id)}
                           onFunction3={() => handleFunction3(employee.id)}
                         />
@@ -217,6 +219,18 @@ const EmployeeManagement = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* HR Card Dialog */}
+      {selectedEmployeeId && (
+        <EmployeeHRCard
+          employeeId={selectedEmployeeId}
+          isOpen={isHRCardOpen}
+          onClose={() => {
+            setIsHRCardOpen(false);
+            setSelectedEmployeeId(null);
+          }}
+        />
+      )}
     </div>
   );
 };

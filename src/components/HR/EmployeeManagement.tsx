@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Filter, Download, Plus } from "lucide-react";
 import ColumnSelectionDialog from "./ColumnSelectionDialog";
 import RowActionMenu from "./RowActionMenu";
@@ -15,6 +17,7 @@ const EmployeeManagement = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedColumns, setSelectedColumns] = useState([
+    "employee_id",
     "employee_name",
     "title", 
     "department", 
@@ -29,6 +32,7 @@ const EmployeeManagement = () => {
   
   // Define available columns
   const availableColumns = [
+    { id: "employee_id", label: "Employee ID" },
     { id: "employee_name", label: "Name" },
     { id: "title", label: "Job Title" },
     { id: "department", label: "Department" },
@@ -106,18 +110,15 @@ const EmployeeManagement = () => {
   const handleFunction3 = (employeeId: string) => {
     toast({ description: `Function 3 for employee ${employeeId}` });
   };
+
+  const handleAddEmployee = () => {
+    toast({ description: "Add employee functionality coming soon" });
+  };
   
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Employee
-        </Button>
-      </div>
-      
-      <Card>
-        <CardHeader className="pb-3">
+    <div className="space-y-6 h-full flex flex-col">
+      <Card className="flex-1 flex flex-col">
+        <CardHeader className="pb-3 shrink-0">
           <div className="flex flex-col md:flex-row justify-between gap-4">
             <div className="flex items-center gap-2 flex-1">
               <Search className="h-4 w-4 text-gray-400" />
@@ -158,67 +159,79 @@ const EmployeeManagement = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[60px]">Actions</TableHead>
-                  {availableColumns.filter(col => selectedColumns.includes(col.id)).map(column => (
-                    <TableHead key={column.id}>{column.label}</TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
+        <CardContent className="flex-1 flex flex-col p-0">
+          <ScrollArea className="flex-1">
+            <div className="px-6">
+              <Table>
+                <TableHeader className="sticky top-0 bg-white z-10 border-b">
                   <TableRow>
-                    <TableCell 
-                      colSpan={selectedColumns.length + 1}
-                      className="text-center py-6 text-gray-500"
-                    >
-                      Loading employee data...
-                    </TableCell>
+                    <TableHead className="w-[80px] bg-white">Actions</TableHead>
+                    {availableColumns.filter(col => selectedColumns.includes(col.id)).map(column => (
+                      <TableHead key={column.id} className="bg-white">{column.label}</TableHead>
+                    ))}
                   </TableRow>
-                ) : filteredEmployees.length === 0 ? (
-                  <TableRow>
-                    <TableCell 
-                      colSpan={selectedColumns.length + 1}
-                      className="text-center py-6 text-gray-500"
-                    >
-                      No employees found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredEmployees.map((employee) => (
-                    <TableRow key={employee.id}>
-                      <TableCell>
-                        <RowActionMenu
-                          onViewDetails={() => handleViewDetails(employee.id)}
-                          onEdit={() => handleEdit(employee.id)}
-                          onDelete={() => handleDelete(employee.id)}
-                          onFunction2={() => handleFunction2(employee.id)}
-                          onFunction3={() => handleFunction3(employee.id)}
-                        />
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell 
+                        colSpan={selectedColumns.length + 1}
+                        className="text-center py-6 text-gray-500"
+                      >
+                        Loading employee data...
                       </TableCell>
-                      {availableColumns.filter(col => selectedColumns.includes(col.id)).map(column => {
-                        const key = column.id as keyof Employee;
-                        const value = employee[key];
-                        return (
-                          <TableCell key={`${employee.id}-${column.id}`}>
-                            {column.id === 'contract_start_date_cv' && value 
-                              ? new Date(value as string).toLocaleDateString() 
-                              : String(value || '-')}
-                          </TableCell>
-                        );
-                      })}
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  ) : filteredEmployees.length === 0 ? (
+                    <TableRow>
+                      <TableCell 
+                        colSpan={selectedColumns.length + 1}
+                        className="text-center py-6 text-gray-500"
+                      >
+                        No employees found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredEmployees.map((employee) => (
+                      <TableRow key={employee.id}>
+                        <TableCell>
+                          <RowActionMenu
+                            onViewDetails={() => handleViewDetails(employee.id)}
+                            onEdit={() => handleEdit(employee.id)}
+                            onDelete={() => handleDelete(employee.id)}
+                            onFunction2={() => handleFunction2(employee.id)}
+                            onFunction3={() => handleFunction3(employee.id)}
+                          />
+                        </TableCell>
+                        {availableColumns.filter(col => selectedColumns.includes(col.id)).map(column => {
+                          const key = column.id as keyof Employee;
+                          const value = employee[key];
+                          return (
+                            <TableCell key={`${employee.id}-${column.id}`}>
+                              {column.id === 'contract_start_date_cv' && value 
+                                ? new Date(value as string).toLocaleDateString() 
+                                : String(value || '-')}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </ScrollArea>
         </CardContent>
       </Card>
+
+      {/* Floating Add Employee Button */}
+      <Button
+        onClick={handleAddEmployee}
+        className="fixed bottom-8 right-8 w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50"
+        size="icon"
+        title="Add employee"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
 
       {/* HR Card Dialog */}
       {selectedEmployeeId && (

@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Filter, Download, Plus, ChevronUp, ChevronDown } from "lucide-react";
 import ColumnSelectionDialog from "./ColumnSelectionDialog";
 import RowActionMenu from "./RowActionMenu";
@@ -37,16 +36,27 @@ const EmployeeManagement = () => {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const { toast } = useToast();
   
-  // Define available columns
+  // Define available columns with all the new ones
   const availableColumns = [
     { id: "employee_id", label: "Employee ID" },
     { id: "employee_name", label: "Name" },
     { id: "title", label: "Job Title" },
     { id: "department", label: "Department" },
+    { id: "sub_department", label: "Sub Department" },
+    { id: "duty", label: "Duty" },
+    { id: "contract_type", label: "Contract Type" },
     { id: "contract_start_date_cv", label: "Hire Date" },
+    { id: "seniority_date_cv", label: "Seniority Date" },
     { id: "email", label: "Email" },
     { id: "phone_number", label: "Phone" },
-    { id: "employmentType", label: "Employment Type" },
+    { id: "gender", label: "Gender" },
+    { id: "date_of_birth_cv", label: "Date of Birth" },
+    { id: "marital_status", label: "Marital Status" },
+    { id: "national_id", label: "National ID" },
+    { id: "permanent_address", label: "Permanent Address" },
+    { id: "highest_education", label: "Highest Education" },
+    { id: "education_institution", label: "Education Institution" },
+    { id: "major", label: "Major" },
     { id: "nationality", label: "Nationality" },
   ];
 
@@ -177,6 +187,13 @@ const EmployeeManagement = () => {
   const handleAddEmployee = () => {
     toast({ description: "Add employee functionality coming soon" });
   };
+
+  const formatCellValue = (column: any, value: any) => {
+    if (column.id === 'contract_start_date_cv' || column.id === 'seniority_date_cv' || column.id === 'date_of_birth_cv') {
+      return value ? new Date(value as string).toLocaleDateString() : '-';
+    }
+    return String(value || '-');
+  };
   
   return (
     <div className="space-y-6 h-full flex flex-col">
@@ -247,14 +264,14 @@ const EmployeeManagement = () => {
           </div>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col p-0">
-          <ScrollArea className="flex-1" style={{ maxHeight: 'calc(100vh - 300px)' }}>
-            <div className="relative">
-              <Table>
-                <TableHeader className="sticky top-0 bg-white z-10 border-b shadow-sm">
-                  <TableRow>
-                    <TableHead className="w-[80px] bg-white">Actions</TableHead>
+          <div className="flex-1 relative border rounded-lg overflow-hidden">
+            <div className="h-full max-h-[calc(100vh-280px)] overflow-auto">
+              <Table className="relative">
+                <TableHeader className="sticky top-0 bg-white z-20 shadow-sm">
+                  <TableRow className="border-b">
+                    <TableHead className="w-[80px] bg-white sticky top-0 z-30 border-r">Actions</TableHead>
                     <TableHead 
-                      className="bg-white cursor-pointer hover:bg-gray-50"
+                      className="bg-white sticky top-0 z-30 cursor-pointer hover:bg-gray-50 border-r"
                       onClick={() => handleSort('employee_id')}
                     >
                       Employee ID {getSortIcon('employee_id')}
@@ -262,7 +279,7 @@ const EmployeeManagement = () => {
                     {availableColumns.filter(col => selectedColumns.includes(col.id) && col.id !== 'employee_id').map(column => (
                       <TableHead 
                         key={column.id} 
-                        className="bg-white cursor-pointer hover:bg-gray-50"
+                        className="bg-white sticky top-0 z-30 cursor-pointer hover:bg-gray-50 border-r min-w-[120px]"
                         onClick={() => handleSort(column.id as SortField)}
                       >
                         {column.label} {getSortIcon(column.id as SortField)}
@@ -274,7 +291,7 @@ const EmployeeManagement = () => {
                   {loading ? (
                     <TableRow>
                       <TableCell 
-                        colSpan={selectedColumns.length + 2}
+                        colSpan={selectedColumns.length + 1}
                         className="text-center py-6 text-gray-500"
                       >
                         Loading employee data...
@@ -283,7 +300,7 @@ const EmployeeManagement = () => {
                   ) : filteredAndSortedEmployees.length === 0 ? (
                     <TableRow>
                       <TableCell 
-                        colSpan={selectedColumns.length + 2}
+                        colSpan={selectedColumns.length + 1}
                         className="text-center py-6 text-gray-500"
                       >
                         No employees found
@@ -291,8 +308,8 @@ const EmployeeManagement = () => {
                     </TableRow>
                   ) : (
                     filteredAndSortedEmployees.map((employee) => (
-                      <TableRow key={employee.id}>
-                        <TableCell>
+                      <TableRow key={employee.id} className="hover:bg-gray-50">
+                        <TableCell className="border-r">
                           <RowActionMenu
                             onViewDetails={() => handleViewDetails(employee.id)}
                             onEdit={() => handleEdit(employee.id)}
@@ -301,15 +318,13 @@ const EmployeeManagement = () => {
                             onFunction3={() => handleFunction3(employee.id)}
                           />
                         </TableCell>
-                        <TableCell>{employee.employee_id}</TableCell>
+                        <TableCell className="border-r">{employee.employee_id}</TableCell>
                         {availableColumns.filter(col => selectedColumns.includes(col.id) && col.id !== 'employee_id').map(column => {
                           const key = column.id as keyof Employee;
                           const value = employee[key];
                           return (
-                            <TableCell key={`${employee.id}-${column.id}`}>
-                              {column.id === 'contract_start_date_cv' && value 
-                                ? new Date(value as string).toLocaleDateString() 
-                                : String(value || '-')}
+                            <TableCell key={`${employee.id}-${column.id}`} className="border-r">
+                              {formatCellValue(column, value)}
                             </TableCell>
                           );
                         })}
@@ -319,7 +334,7 @@ const EmployeeManagement = () => {
                 </TableBody>
               </Table>
             </div>
-          </ScrollArea>
+          </div>
         </CardContent>
       </Card>
 

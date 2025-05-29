@@ -67,7 +67,6 @@ const EmployeeHRCard: React.FC<EmployeeHRCardProps> = ({
   useEffect(() => {
     if (isOpen && employeeId) {
       fetchEmployeeDetails();
-      fetchEmployeeDocuments();
     }
   }, [isOpen, employeeId]);
 
@@ -82,6 +81,11 @@ const EmployeeHRCard: React.FC<EmployeeHRCardProps> = ({
 
       if (error) throw error;
       setEmployee(data);
+      
+      // Fetch documents using employee_id
+      if (data?.employee_id) {
+        await fetchEmployeeDocuments(data.employee_id);
+      }
     } catch (error) {
       console.error('Error fetching employee details:', error);
       toast({
@@ -94,14 +98,12 @@ const EmployeeHRCard: React.FC<EmployeeHRCardProps> = ({
     }
   };
 
-  const fetchEmployeeDocuments = async () => {
+  const fetchEmployeeDocuments = async (employeeId: number) => {
     try {
-      if (!employee?.employee_id) return;
-      
       const { data, error } = await supabase
         .from('employee_documents')
         .select('*')
-        .eq('employee_id', employee.employee_id);
+        .eq('employee_id', employeeId);
 
       if (error) throw error;
       setDocuments(data || []);
@@ -110,17 +112,10 @@ const EmployeeHRCard: React.FC<EmployeeHRCardProps> = ({
     }
   };
 
-  // Re-fetch documents when employee data is loaded
-  useEffect(() => {
-    if (employee?.employee_id) {
-      fetchEmployeeDocuments();
-    }
-  }, [employee?.employee_id]);
-
   const handleDocumentPreview = async (storagePath: string) => {
     try {
-      // Fix URL structure: remove 'documents/' prefix and replace dashes with underscores
-      const correctedPath = storagePath.replace('hr-documents/', 'hr-documents/').replace('tenant-', 'tenant_');
+      // Fix URL structure: remove duplicate hr-documents/ prefix
+      const correctedPath = storagePath.replace(/^hr-documents\//, '').replace('tenant-', 'tenant_');
       
       const { data } = supabase.storage
         .from('hr-documents')
@@ -143,70 +138,73 @@ const EmployeeHRCard: React.FC<EmployeeHRCardProps> = ({
   };
 
   const handleDownload = () => {
-    // Create a new window for PDF generation
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>HR Card - ${employee?.employee_name}</title>
-            <style>
-              @page { size: A4; margin: 20mm; }
-              body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; }
-              .header { text-align: center; margin-bottom: 20px; }
-              .section { margin-bottom: 15px; }
-              .section-title { font-weight: bold; font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #ccc; }
-              .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-              .field { margin-bottom: 5px; }
-              .label { font-weight: bold; }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <h1>Employee HR Card</h1>
-              <h2>${employee?.employee_name || 'N/A'}</h2>
-              <p>${employee?.title || 'N/A'} - ${employee?.department || 'N/A'}</p>
+    // Create HTML content for PDF
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>HR Card - ${employee?.employee_name}</title>
+          <style>
+            @page { size: A4; margin: 20mm; }
+            body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .section { margin-bottom: 15px; }
+            .section-title { font-weight: bold; font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+            .field { margin-bottom: 5px; }
+            .label { font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Employee HR Card</h1>
+            <h2>${employee?.employee_name || 'N/A'}</h2>
+            <p>${employee?.title || 'N/A'} - ${employee?.department || 'N/A'}</p>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">Personal Information</div>
+            <div class="grid">
+              <div class="field"><span class="label">Gender:</span> ${employee?.gender || 'N/A'}</div>
+              <div class="field"><span class="label">Date of Birth:</span> ${employee?.date_of_birth_cv ? new Date(employee.date_of_birth_cv).toLocaleDateString() : 'N/A'}</div>
+              <div class="field"><span class="label">National ID:</span> ${employee?.national_id || 'N/A'}</div>
+              <div class="field"><span class="label">Nationality:</span> ${employee?.nationality || 'N/A'}</div>
+              <div class="field"><span class="label">Marital Status:</span> ${employee?.marital_status || 'N/A'}</div>
+              <div class="field"><span class="label">Ethnic Group:</span> ${employee?.ethnic_group || 'N/A'}</div>
             </div>
-            
-            <div class="section">
-              <div class="section-title">Personal Information</div>
-              <div class="grid">
-                <div class="field"><span class="label">Gender:</span> ${employee?.gender || 'N/A'}</div>
-                <div class="field"><span class="label">Date of Birth:</span> ${employee?.date_of_birth_cv ? new Date(employee.date_of_birth_cv).toLocaleDateString() : 'N/A'}</div>
-                <div class="field"><span class="label">National ID:</span> ${employee?.national_id || 'N/A'}</div>
-                <div class="field"><span class="label">Nationality:</span> ${employee?.nationality || 'N/A'}</div>
-                <div class="field"><span class="label">Marital Status:</span> ${employee?.marital_status || 'N/A'}</div>
-                <div class="field"><span class="label">Ethnic Group:</span> ${employee?.ethnic_group || 'N/A'}</div>
-              </div>
-              <div class="field"><span class="label">Birth Place:</span> ${employee?.birth_place || 'N/A'}</div>
-              <div class="field"><span class="label">Permanent Address:</span> ${employee?.permanent_address || 'N/A'}</div>
+            <div class="field"><span class="label">Birth Place:</span> ${employee?.birth_place || 'N/A'}</div>
+            <div class="field"><span class="label">Permanent Address:</span> ${employee?.permanent_address || 'N/A'}</div>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">Education & Expertise</div>
+            <div class="grid">
+              <div class="field"><span class="label">Highest Education:</span> ${employee?.highest_education || 'N/A'}</div>
+              <div class="field"><span class="label">Institution:</span> ${employee?.education_institution || 'N/A'}</div>
+              <div class="field"><span class="label">Major:</span> ${employee?.major || 'N/A'}</div>
+              <div class="field"><span class="label">Graduation Year:</span> ${employee?.graduation_year || 'N/A'}</div>
             </div>
-            
-            <div class="section">
-              <div class="section-title">Education & Expertise</div>
-              <div class="grid">
-                <div class="field"><span class="label">Highest Education:</span> ${employee?.highest_education || 'N/A'}</div>
-                <div class="field"><span class="label">Institution:</span> ${employee?.education_institution || 'N/A'}</div>
-                <div class="field"><span class="label">Major:</span> ${employee?.major || 'N/A'}</div>
-                <div class="field"><span class="label">Graduation Year:</span> ${employee?.graduation_year || 'N/A'}</div>
-              </div>
-            </div>
-            
-            <div class="section">
-              <div class="section-title">Contact Information</div>
-              <div class="field"><span class="label">Phone:</span> ${employee?.phone_number || 'N/A'}</div>
-              <div class="field"><span class="label">Email:</span> ${employee?.email || 'N/A'}</div>
-            </div>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 500);
-    }
+          </div>
+          
+          <div class="section">
+            <div class="section-title">Contact Information</div>
+            <div class="field"><span class="label">Phone:</span> ${employee?.phone_number || 'N/A'}</div>
+            <div class="field"><span class="label">Email:</span> ${employee?.email || 'N/A'}</div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Create a blob and download
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `HR_Card_${employee?.employee_name || 'Employee'}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const formatDate = (dateString: string) => {

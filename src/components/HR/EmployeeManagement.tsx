@@ -6,12 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Filter, Download, Plus } from "lucide-react";
+import { Search, Filter, Download, Plus, ChevronUp, ChevronDown } from "lucide-react";
 import ColumnSelectionDialog from "./ColumnSelectionDialog";
 import RowActionMenu from "./RowActionMenu";
 import EmployeeHRCard from "./EmployeeHRCard";
 import { fetchEmployees, Employee } from "@/services/employeeService";
 import { useToast } from "@/hooks/use-toast";
+
+type SortField = keyof Employee | 'employee_id';
+type SortDirection = 'asc' | 'desc';
+type SearchField = 'employee_name' | 'employee_id' | 'phone_number' | 'email';
 
 const EmployeeManagement = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -25,9 +29,12 @@ const EmployeeManagement = () => {
     "email"
   ]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchField, setSearchField] = useState<SearchField>("employee_name");
   const [filterDepartment, setFilterDepartment] = useState("all");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [isHRCardOpen, setIsHRCardOpen] = useState(false);
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const { toast } = useToast();
   
   // Define available columns
@@ -41,6 +48,13 @@ const EmployeeManagement = () => {
     { id: "phone_number", label: "Phone" },
     { id: "employmentType", label: "Employment Type" },
     { id: "nationality", label: "Nationality" },
+  ];
+
+  const searchFieldOptions = [
+    { value: "employee_name", label: "Name" },
+    { value: "employee_id", label: "Employee ID" },
+    { value: "phone_number", label: "Phone" },
+    { value: "email", label: "Email" }
   ];
   
   // Load employees from Supabase
@@ -72,20 +86,69 @@ const EmployeeManagement = () => {
       setSelectedColumns([...selectedColumns, columnId]);
     }
   };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) return null;
+    return sortDirection === 'asc' ? 
+      <ChevronUp className="h-4 w-4 inline ml-1" /> : 
+      <ChevronDown className="h-4 w-4 inline ml-1" />;
+  };
   
-  const filteredEmployees = employees.filter(employee => {
-    const matchesSearch = searchTerm === "" || 
-      Object.values(employee).some(value => 
-        value && 
-        typeof value === 'string' && 
-        value.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    
-    const matchesDepartment = filterDepartment === "all" || 
-      employee.department === filterDepartment;
-    
-    return matchesSearch && matchesDepartment;
-  });
+  const filteredAndSortedEmployees = React.useMemo(() => {
+    let filtered = employees.filter(employee => {
+      const matchesSearch = searchTerm === "" || (() => {
+        const searchValue = searchTerm.toLowerCase();
+        switch (searchField) {
+          case 'employee_name':
+            return employee.employee_name?.toLowerCase().includes(searchValue);
+          case 'employee_id':
+            return employee.employee_id?.toString().includes(searchValue);
+          case 'phone_number':
+            return employee.phone_number?.toLowerCase().includes(searchValue);
+          case 'email':
+            return employee.email?.toLowerCase().includes(searchValue);
+          default:
+            return false;
+        }
+      })();
+      
+      const matchesDepartment = filterDepartment === "all" || 
+        employee.department === filterDepartment;
+      
+      return matchesSearch && matchesDepartment;
+    });
+
+    // Sort employees
+    if (sortField) {
+      filtered = [...filtered].sort((a, b) => {
+        let aVal = a[sortField];
+        let bVal = b[sortField];
+        
+        // Handle null/undefined values
+        if (aVal == null && bVal == null) return 0;
+        if (aVal == null) return 1;
+        if (bVal == null) return -1;
+        
+        // Convert to string for comparison
+        aVal = String(aVal).toLowerCase();
+        bVal = String(bVal).toLowerCase();
+        
+        const result = aVal.localeCompare(bVal);
+        return sortDirection === 'asc' ? result : -result;
+      });
+    }
+
+    return filtered;
+  }, [employees, searchTerm, searchField, filterDepartment, sortField, sortDirection]);
   
   const departments = Array.from(new Set(employees.map(emp => emp.department || ""))).filter(Boolean);
 
@@ -119,18 +182,32 @@ const EmployeeManagement = () => {
     <div className="space-y-6 h-full flex flex-col">
       <Card className="flex-1 flex flex-col">
         <CardHeader className="pb-3 shrink-0">
-          <div className="flex flex-col md:flex-row justify-between gap-4">
+          <div className="flex flex-col gap-4">
+            {/* Search Bar Row */}
             <div className="flex items-center gap-2 flex-1">
               <Search className="h-4 w-4 text-gray-400" />
+              <Select value={searchField} onValueChange={(value: SearchField) => setSearchField(value)}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {searchFieldOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Input
-                placeholder="Search employees..."
+                placeholder={`Search by ${searchFieldOptions.find(opt => opt.value === searchField)?.label}...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="max-w-md"
               />
             </div>
             
-            <div className="flex flex-col md:flex-row gap-2">
+            {/* Filter and Action Buttons Row */}
+            <div className="flex flex-col md:flex-row justify-between gap-4">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-gray-400" />
                 <Select value={filterDepartment} onValueChange={setFilterDepartment}>
@@ -146,34 +223,50 @@ const EmployeeManagement = () => {
                 </Select>
               </div>
               
-              <Button variant="outline">
-                <Download className="mr-2 h-4 w-4" />
-                Export
-              </Button>
+              <div className="flex flex-col md:flex-row gap-2">
+                <Button variant="outline">
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+                </Button>
 
-              <ColumnSelectionDialog
-                columns={availableColumns}
-                selectedColumns={selectedColumns}
-                onColumnToggle={handleColumnToggle}
-              />
+                <ColumnSelectionDialog
+                  columns={availableColumns}
+                  selectedColumns={selectedColumns}
+                  onColumnToggle={handleColumnToggle}
+                />
 
-              <Button onClick={handleAddEmployee} variant="default">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Employee
-              </Button>
+                <Button 
+                  onClick={handleAddEmployee} 
+                  className="bg-gray-700 hover:bg-gray-800 text-white"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Employee
+                </Button>
+              </div>
             </div>
           </div>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col p-0">
-          <ScrollArea className="flex-1" style={{ maxHeight: 'calc(100vh - 240px)' }}>
+          <ScrollArea className="flex-1" style={{ maxHeight: 'calc(100vh - 300px)' }}>
             <div className="relative">
               <Table>
                 <TableHeader className="sticky top-0 bg-white z-10 border-b shadow-sm">
                   <TableRow>
                     <TableHead className="w-[80px] bg-white">Actions</TableHead>
-                    <TableHead className="bg-white">Employee ID</TableHead>
+                    <TableHead 
+                      className="bg-white cursor-pointer hover:bg-gray-50"
+                      onClick={() => handleSort('employee_id')}
+                    >
+                      Employee ID {getSortIcon('employee_id')}
+                    </TableHead>
                     {availableColumns.filter(col => selectedColumns.includes(col.id) && col.id !== 'employee_id').map(column => (
-                      <TableHead key={column.id} className="bg-white">{column.label}</TableHead>
+                      <TableHead 
+                        key={column.id} 
+                        className="bg-white cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleSort(column.id as SortField)}
+                      >
+                        {column.label} {getSortIcon(column.id as SortField)}
+                      </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
@@ -187,7 +280,7 @@ const EmployeeManagement = () => {
                         Loading employee data...
                       </TableCell>
                     </TableRow>
-                  ) : filteredEmployees.length === 0 ? (
+                  ) : filteredAndSortedEmployees.length === 0 ? (
                     <TableRow>
                       <TableCell 
                         colSpan={selectedColumns.length + 2}
@@ -197,7 +290,7 @@ const EmployeeManagement = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredEmployees.map((employee) => (
+                    filteredAndSortedEmployees.map((employee) => (
                       <TableRow key={employee.id}>
                         <TableCell>
                           <RowActionMenu

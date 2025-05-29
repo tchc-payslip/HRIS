@@ -119,9 +119,12 @@ const EmployeeHRCard: React.FC<EmployeeHRCardProps> = ({
 
   const handleDocumentPreview = async (storagePath: string) => {
     try {
+      // Fix URL structure: remove 'documents/' prefix and replace dashes with underscores
+      const correctedPath = storagePath.replace('hr-documents/', 'hr-documents/').replace('tenant-', 'tenant_');
+      
       const { data } = supabase.storage
-        .from('documents')
-        .getPublicUrl(storagePath);
+        .from('hr-documents')
+        .getPublicUrl(correctedPath);
       
       if (data?.publicUrl) {
         window.open(data.publicUrl, '_blank');
@@ -220,6 +223,10 @@ const EmployeeHRCard: React.FC<EmployeeHRCardProps> = ({
       .slice(0, 2);
   };
 
+  const getFileName = (storagePath: string) => {
+    return storagePath.split('/').pop() || 'Unknown file';
+  };
+
   if (loading) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -263,14 +270,16 @@ const EmployeeHRCard: React.FC<EmployeeHRCardProps> = ({
           </div>
         </DialogHeader>
 
-        <style jsx>{`
-          @media print {
-            @page { size: A4; margin: 20mm; }
-            body * { visibility: hidden; }
-            .print-content, .print-content * { visibility: visible; }
-            .print-content { position: absolute; left: 0; top: 0; width: 100%; }
-          }
-        `}</style>
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @media print {
+              @page { size: A4; margin: 20mm; }
+              body * { visibility: hidden; }
+              .print-content, .print-content * { visibility: visible; }
+              .print-content { position: absolute; left: 0; top: 0; width: 100%; }
+            }
+          `
+        }} />
 
         <div className="print-content">
           {/* Header Section */}
@@ -404,6 +413,9 @@ const EmployeeHRCard: React.FC<EmployeeHRCardProps> = ({
                           <FileText className="h-4 w-4 text-gray-500" />
                           <div>
                             <p className="font-medium text-sm">{doc.document_type}</p>
+                            <p className="text-xs text-gray-500">
+                              File: {getFileName(doc.supabase_storage_path)}
+                            </p>
                             <p className="text-xs text-gray-500">
                               Uploaded: {formatDate(doc.uploaded_at)}
                             </p>

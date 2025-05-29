@@ -156,17 +156,23 @@ const EmployeeManagement = () => {
                 selectedColumns={selectedColumns}
                 onColumnToggle={handleColumnToggle}
               />
+
+              <Button onClick={handleAddEmployee} variant="default">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Employee
+              </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col p-0">
-          <ScrollArea className="flex-1">
-            <div className="px-6">
+          <ScrollArea className="flex-1" style={{ maxHeight: 'calc(100vh - 240px)' }}>
+            <div className="relative">
               <Table>
-                <TableHeader className="sticky top-0 bg-white z-10 border-b">
+                <TableHeader className="sticky top-0 bg-white z-10 border-b shadow-sm">
                   <TableRow>
                     <TableHead className="w-[80px] bg-white">Actions</TableHead>
-                    {availableColumns.filter(col => selectedColumns.includes(col.id)).map(column => (
+                    <TableHead className="bg-white">Employee ID</TableHead>
+                    {availableColumns.filter(col => selectedColumns.includes(col.id) && col.id !== 'employee_id').map(column => (
                       <TableHead key={column.id} className="bg-white">{column.label}</TableHead>
                     ))}
                   </TableRow>
@@ -175,7 +181,7 @@ const EmployeeManagement = () => {
                   {loading ? (
                     <TableRow>
                       <TableCell 
-                        colSpan={selectedColumns.length + 1}
+                        colSpan={selectedColumns.length + 2}
                         className="text-center py-6 text-gray-500"
                       >
                         Loading employee data...
@@ -184,7 +190,7 @@ const EmployeeManagement = () => {
                   ) : filteredEmployees.length === 0 ? (
                     <TableRow>
                       <TableCell 
-                        colSpan={selectedColumns.length + 1}
+                        colSpan={selectedColumns.length + 2}
                         className="text-center py-6 text-gray-500"
                       >
                         No employees found
@@ -202,7 +208,8 @@ const EmployeeManagement = () => {
                             onFunction3={() => handleFunction3(employee.id)}
                           />
                         </TableCell>
-                        {availableColumns.filter(col => selectedColumns.includes(col.id)).map(column => {
+                        <TableCell>{employee.employee_id}</TableCell>
+                        {availableColumns.filter(col => selectedColumns.includes(col.id) && col.id !== 'employee_id').map(column => {
                           const key = column.id as keyof Employee;
                           const value = employee[key];
                           return (
@@ -222,16 +229,6 @@ const EmployeeManagement = () => {
           </ScrollArea>
         </CardContent>
       </Card>
-
-      {/* Floating Add Employee Button */}
-      <Button
-        onClick={handleAddEmployee}
-        className="fixed bottom-8 right-8 w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-50"
-        size="icon"
-        title="Add employee"
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
 
       {/* HR Card Dialog */}
       {selectedEmployeeId && (

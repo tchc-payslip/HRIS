@@ -1,175 +1,156 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { toast } from '@/hooks/use-toast';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { useThemeStore, ThemeColors } from '@/store/themeStore';
+import { cn } from '@/lib/utils';
 
-// Define theme color options
-const themeColors = [
-  { name: "Green", value: "green-700" },
-  { name: "Blue", value: "blue-700" },
-  { name: "Purple", value: "purple-700" },
-  { name: "Indigo", value: "indigo-700" },
-  { name: "Red", value: "red-700" }
+const predefinedThemes: { name: string; colors: ThemeColors }[] = [
+  {
+    name: 'Default',
+    colors: {
+      primary: '#000000',
+      secondary: '#a6a8ac',
+      tableHeader: '#f6f6f6'
+    }
+  },
+  {
+    name: 'Gray',
+    colors: {
+      primary: '#414650',
+      secondary: '#a6a8ac',
+      tableHeader: '#d7d7d9'
+    }
+  },
+  {
+    name: 'Purple',
+    colors: {
+      primary: '#683fc8',
+      secondary: '#d5bafc',
+      tableHeader: '#f8f5fd'
+    }
+  },
+  {
+    name: 'Red',
+    colors: {
+      primary: '#d92c20',
+      secondary: '#f77067',
+      tableHeader: '#fef2f2'
+    }
+  },
+  {
+    name: 'Orange',
+    colors: {
+      primary: '#fdb022',
+      secondary: '#ffe08b',
+      tableHeader: '#fff0c3'
+    }
+  },
+  {
+    name: 'Green',
+    colors: {
+      primary: '#305d32',
+      secondary: '#69a56c',
+      tableHeader: '#dcf2e2'
+    }
+  }
 ];
 
-// Define languages
-const languages = [
-  { name: "English", value: "en" },
-  { name: "Tiếng Việt", value: "vi" }
-];
+const ColorSwatch = ({ color, label }: { color: string; label: string }) => (
+  <div className="flex flex-col w-20 h-24 rounded-md overflow-hidden border border-gray-200">
+    <div className="flex-1 flex items-center justify-center" style={{ backgroundColor: color }}>
+    </div>
+    <div className="p-2 text-xs text-center bg-white">
+      {color.toUpperCase()}
+    </div>
+  </div>
+);
 
 const Settings = () => {
-  const navigate = useNavigate();
-  
-  // Load saved settings from localStorage or use defaults
-  const [selectedColor, setSelectedColor] = useState(() => {
-    return localStorage.getItem('theme-color') || 'green-700';
-  });
-  
-  const [selectedLanguage, setSelectedLanguage] = useState(() => {
-    return localStorage.getItem('language') || 'en';
-  });
-  
-  // Keep track of initial settings to check if changes were made
-  const [initialColor] = useState(selectedColor);
-  const [initialLanguage] = useState(selectedLanguage);
+  const { colors: currentColors, setTheme } = useThemeStore();
 
-  const hasChanges = selectedColor !== initialColor || selectedLanguage !== initialLanguage;
-  
-  // Apply color change immediately for preview
-  useEffect(() => {
-    // Update document style for preview
-    document.documentElement.style.setProperty('--theme-color', selectedColor);
-  }, [selectedColor]);
-  
-  const handleSave = () => {
-    // Save settings to localStorage
-    localStorage.setItem('theme-color', selectedColor);
-    localStorage.setItem('language', selectedLanguage);
-    
-    toast({
-      title: "Settings saved",
-      description: "Your preferences have been updated."
-    });
-  };
-  
-  const handleCancel = () => {
-    // Reset to initial values
-    setSelectedColor(initialColor);
-    setSelectedLanguage(initialLanguage);
-    
-    // Apply initial color back
-    document.documentElement.style.setProperty('--theme-color', initialColor);
-    
-    toast({
-      title: "Changes canceled",
-      description: "Your changes have been discarded."
-    });
+  const handleThemeSelect = (colors: ThemeColors) => {
+    setTheme(colors);
+    document.documentElement.style.setProperty('--theme-primary', colors.primary);
+    document.documentElement.style.setProperty('--theme-secondary', colors.secondary);
+    document.documentElement.style.setProperty('--theme-table-header', colors.tableHeader);
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(-1)}
-          className="mr-2"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <h2 className="text-xl font-bold">Settings</h2>
+    <div className="space-y-6 text-sm">
+      <div>
+        <h2 className="text-xl font-bold tracking-tight">Settings</h2>
+        <p className="text-muted-foreground">
+          Manage your account settings and preferences.
+        </p>
       </div>
-      
-      <div className="space-y-8">
-        {/* Theme Color Section */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h3 className="text-base font-semibold mb-4">Appearance</h3>
-          
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Theme</CardTitle>
+          <CardDescription>
+            Choose a theme color for the application.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
           <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="theme-color">Theme Color</Label>
-              <Select
-                value={selectedColor}
-                onValueChange={setSelectedColor}
-              >
-                <SelectTrigger id="theme-color" className="w-full">
-                  <SelectValue placeholder="Select a theme color" />
-                </SelectTrigger>
-                <SelectContent>
-                  {themeColors.map((color) => (
-                    <SelectItem key={color.value} value={color.value}>
-                      <div className="flex items-center">
-                        <div className={`w-4 h-4 rounded-full bg-${color.value} mr-2`}></div>
-                        {color.name}
+            <div>
+              <Label className="text-sm mb-3">Color Themes</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-3">
+                {predefinedThemes.map((theme) => (
+                  <button
+                    key={theme.name}
+                    onClick={() => handleThemeSelect(theme.colors)}
+                    className={cn(
+                      "relative p-4 rounded-lg border-2 transition-all",
+                      JSON.stringify(currentColors) === JSON.stringify(theme.colors)
+                        ? "border-primary shadow-sm"
+                        : "border-transparent hover:border-muted"
+                    )}
+                  >
+                    <div className="flex flex-col gap-2">
+                      <span className="text-sm font-medium mb-2">{theme.name}</span>
+                      <div className="flex gap-2 justify-center">
+                        <ColorSwatch color={theme.colors.primary} label="Primary" />
+                        <ColorSwatch color={theme.colors.secondary} label="Secondary" />
+                        <ColorSwatch color={theme.colors.tableHeader} label="Table" />
                       </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <div className="mt-4 flex space-x-2">
-                <div className="text-sm text-gray-500">Preview:</div>
-                <div className={`px-3 py-1 rounded-md bg-${selectedColor} text-white text-sm`}>
-                  Button
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <Label className="text-sm mb-3">Color Usage</Label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 text-xs">
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <h3 className="font-medium mb-2">Primary Color</h3>
+                  <ul className="list-disc list-inside text-gray-600">
+                    <li>Header bar</li>
+                    <li>Active sections</li>
+                    <li>Active tabs</li>
+                    <li>Primary buttons</li>
+                  </ul>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <h3 className="font-medium mb-2">Secondary Color</h3>
+                  <ul className="list-disc list-inside text-gray-600">
+                    <li>Secondary buttons</li>
+                    <li>Accent elements</li>
+                  </ul>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <h3 className="font-medium mb-2">Table Header Color</h3>
+                  <ul className="list-disc list-inside text-gray-600">
+                    <li>Table header backgrounds</li>
+                    <li>Section backgrounds</li>
+                  </ul>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Language Section */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h3 className="text-base font-semibold mb-4">Language</h3>
-          
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="language">Display Language</Label>
-              <Select
-                value={selectedLanguage}
-                onValueChange={setSelectedLanguage}
-              >
-                <SelectTrigger id="language" className="w-full">
-                  <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-                <SelectContent>
-                  {languages.map((lang) => (
-                    <SelectItem key={lang.value} value={lang.value}>
-                      {lang.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-        
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-3">
-          <Button 
-            onClick={handleCancel} 
-            variant="outline"
-            disabled={!hasChanges}
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleSave} 
-            disabled={!hasChanges}
-          >
-            Save Changes
-          </Button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

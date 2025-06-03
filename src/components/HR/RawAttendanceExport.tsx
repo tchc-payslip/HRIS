@@ -1,11 +1,10 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Download } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 interface RawAttendanceRecord {
   device_sn: string;
@@ -16,50 +15,47 @@ interface RawAttendanceRecord {
 }
 
 interface RawAttendanceExportProps {
+  records: RawAttendanceRecord[];
   filteredRecords: RawAttendanceRecord[];
 }
 
+const formatDateTime = (timestamp: string) => {
+  const date = new Date(timestamp);
+  return {
+    date: format(date, 'yyyy-MM-dd'),
+    time: format(date, 'HH:mm:ss')
+  };
+};
+
 const RawAttendanceExport: React.FC<RawAttendanceExportProps> = ({
-  filteredRecords,
+  records,
+  filteredRecords
 }) => {
   const { toast } = useToast();
 
-  // Format timestamp to date and time
-  const formatDateTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const dateStr = date.toLocaleDateString();
-    const timeStr = date.toLocaleTimeString();
-    return { date: dateStr, time: timeStr };
-  };
-
-  // Export functions
   const exportToCSV = () => {
     const headers = ["Employee ID", "Employee Name", "Department", "Date", "Time", "Device SN"];
-    const csvData = filteredRecords.map(record => {
-      const { date, time } = formatDateTime(record.timestamp);
-      return [
-        record.employee_id || '',
-        record.employee_name || '',
-        record.department || '',
-        date,
-        time,
-        record.device_sn
-      ];
-    });
-
-    const csvContent = [headers, ...csvData]
-      .map(row => row.map(field => `"${field}"`).join(','))
-      .join('\n');
+    const csvContent = [
+      headers.join(','),
+      ...filteredRecords.map(record => {
+        const { date, time } = formatDateTime(record.timestamp);
+        return [
+          record.employee_id,
+          `"${record.employee_name || ''}"`,
+          `"${record.department || ''}"`,
+          date,
+          time,
+          record.device_sn
+        ].join(',');
+      })
+    ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `raw_attendance_${format(new Date(), 'yyyy-MM-dd')}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
+    link.href = URL.createObjectURL(blob);
+    link.download = `raw_attendance_${format(new Date(), 'yyyy-MM-dd')}.csv`;
     link.click();
-    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
 
     toast({
       title: "Success",
@@ -67,24 +63,49 @@ const RawAttendanceExport: React.FC<RawAttendanceExportProps> = ({
     });
   };
 
-  const exportToXLSX = () => {
-    const headers = ["Employee ID", "Employee Name", "Department", "Date", "Time", "Device SN"];
-    const excelData = filteredRecords.map(record => {
+  const exportToXLSX = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Raw Attendance');
+
+    // Add headers with styling
+    worksheet.columns = [
+      { header: 'Employee ID', key: 'employeeId', width: 12 },
+      { header: 'Employee Name', key: 'employeeName', width: 20 },
+      { header: 'Department', key: 'department', width: 20 },
+      { header: 'Date', key: 'date', width: 12 },
+      { header: 'Time', key: 'time', width: 10 },
+      { header: 'Device SN', key: 'deviceSn', width: 15 }
+    ];
+
+    // Style the header row
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' }
+    };
+
+    // Add data
+    filteredRecords.forEach(record => {
       const { date, time } = formatDateTime(record.timestamp);
-      return {
-        "Employee ID": record.employee_id || '',
-        "Employee Name": record.employee_name || '',
-        "Department": record.department || '',
-        "Date": date,
-        "Time": time,
-        "Device SN": record.device_sn
-      };
+      worksheet.addRow({
+        employeeId: record.employee_id,
+        employeeName: record.employee_name || '',
+        department: record.department || '',
+        date,
+        time,
+        deviceSn: record.device_sn
+      });
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Raw Attendance");
-    XLSX.writeFile(workbook, `raw_attendance_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+    // Generate blob and download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `raw_attendance_${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    link.click();
+    URL.revokeObjectURL(link.href);
 
     toast({
       title: "Success",

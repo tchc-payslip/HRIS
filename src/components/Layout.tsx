@@ -1,4 +1,3 @@
-
 import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { 
@@ -29,13 +28,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuthStore } from "@/store/authStore";
+import { useThemeStore } from "@/store/themeStore";
 
 const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { signOut, user } = useAuthStore();
+  const { colors, applyThemeToDOM } = useThemeStore();
   const currentPath = location.pathname;
   const mainSection = currentPath.split('/')[1] || 'profile';
   
+  // Apply theme on mount
+  useEffect(() => {
+    applyThemeToDOM(colors);
+  }, [colors, applyThemeToDOM]);
+
   // Determine which section we're in (Personal or HR)
   const isHrSection = currentPath.startsWith('/hr');
   const isSettingsPage = currentPath === '/settings';
@@ -68,10 +76,19 @@ const Layout = () => {
     return currentPath;
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Sign out failed:', error);
+    }
+  };
+
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header - changed to dark gray with white text */}
-      <header className="bg-gray-800 py-1.5 px-4 text-white shadow-md flex justify-between items-center z-10">
+    <div className="flex flex-col h-screen" style={{ backgroundColor: colors.secondary }}>
+      {/* Header with theme color */}
+      <header className="py-1.5 px-4 text-white shadow-md flex justify-between items-center z-10" style={{ backgroundColor: colors.primary }}>
         <div className="flex items-center">
           <h1 className="font-bold text-base text-white">HR Management System</h1>
         </div>
@@ -79,23 +96,22 @@ const Layout = () => {
           {/* Notification icon */}
           <Bell className="w-4 h-4 cursor-pointer hover:text-gray-200 text-white" />
           
-          {/* Account dropdown - showing employee 1009 */}
+          {/* Account dropdown */}
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center space-x-1 cursor-pointer hover:text-gray-200 text-white">
-              <UserRound className="w-4 h-4" />
-              <span className="hidden md:inline text-sm">Employee 1009</span>
+            <DropdownMenuTrigger className="flex items-center cursor-pointer hover:text-gray-200 text-white">
+              <UserRound className="w-5 h-5" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-white border border-gray-200 shadow-lg">
-              <DropdownMenuItem className="cursor-pointer text-gray-700">
-                Account Details
-              </DropdownMenuItem>
               <DropdownMenuItem 
                 className="cursor-pointer text-gray-700" 
                 onClick={() => navigate('/settings')}
               >
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer text-gray-700">
+              <DropdownMenuItem 
+                className="cursor-pointer text-gray-700"
+                onClick={handleSignOut}
+              >
                 Log out
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -104,7 +120,7 @@ const Layout = () => {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - icons only with tooltips */}
+        {/* Sidebar with theme colors */}
         <div className="bg-white shadow-md z-20 flex flex-col w-14 fixed h-[calc(100vh-40px)]">
           {/* Personal section */}
           <div className="px-2 py-2">
@@ -116,7 +132,7 @@ const Layout = () => {
                     className={cn(
                       "flex items-center justify-center py-2 px-2 rounded-md transition-colors w-10 h-10 mx-auto",
                       (!isHrSection && !isSettingsPage)
-                        ? "bg-gray-600 text-white font-bold"
+                        ? "active-sidebar-icon"
                         : "text-gray-600 hover:bg-gray-100"
                     )}
                   >
@@ -140,7 +156,7 @@ const Layout = () => {
                     className={cn(
                       "flex items-center justify-center py-2 px-2 rounded-md transition-colors w-10 h-10 mx-auto",
                       (isHrSection && !isSettingsPage)
-                        ? "bg-gray-600 text-white font-bold"
+                        ? "active-sidebar-icon"
                         : "text-gray-600 hover:bg-gray-100"
                     )}
                   >
@@ -155,9 +171,9 @@ const Layout = () => {
           </div>
         </div>
 
-        {/* Main content - with fixed position */}
-        <div className="flex-1 overflow-auto ml-14 bg-gray-50">
-          {/* Tabbed Navigation - only show for Personal and HR sections */}
+        {/* Main content */}
+        <div className="flex-1 overflow-auto ml-14" style={{ backgroundColor: colors.secondary }}>
+          {/* Tabbed Navigation with theme colors */}
           {!isSettingsPage && (
             <div className="bg-white border-b sticky top-0 z-10 py-1 px-4">
               <Tabs value={getCurrentActiveTab()} className="w-full">
@@ -169,7 +185,7 @@ const Layout = () => {
                       className={cn(
                         "flex items-center px-3 py-2 rounded-md text-sm transition-colors border",
                         currentPath === item.to
-                          ? "bg-gray-700 text-white font-bold border-gray-700"
+                          ? "active-tab"
                           : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-transparent"
                       )}
                       onClick={() => navigate(item.to)}

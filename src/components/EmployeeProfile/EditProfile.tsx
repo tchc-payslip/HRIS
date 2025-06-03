@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { useEmployeeStore } from '@/store/employeeStore';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,28 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProfileImageUpload from './ProfileImageUpload';
 import ProfessionalInfo from './ProfessionalInfo';
 import CustomFields from './CustomFields';
+import { Employee } from '@/services/employeeService';
 
 interface EditProfileProps {
-  employee: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    position: string;
-    department: string;
-    hireDate: string;
-    phone: string;
-    address: string;
-    bio: string;
-    profileImage: string;
-    dob?: string;
-    employmentType?: string;
-    emergencyContact?: string;
-    skills?: string[];
-    qualifications?: string[];
-    certifications?: string[];
-    customFields?: Record<string, string>;
-  };
+  employee: Employee;
   onCancel: () => void;
 }
 
@@ -40,14 +21,19 @@ const EditProfile = ({ employee, onCancel }: EditProfileProps) => {
   const { updateEmployee, isLoading, uploadProfileImage } = useEmployeeStore();
   
   const [formData, setFormData] = React.useState({
-    firstName: employee.firstName,
-    lastName: employee.lastName,
-    email: employee.email,
-    phone: employee.phone,
-    address: employee.address,
-    bio: employee.bio,
-    dob: employee.dob || '',
-    emergencyContact: employee.emergencyContact || '',
+    firstName: employee.firstName || '',
+    lastName: employee.lastName || '',
+    email: employee.email || '',
+    phone: employee.phone_number || '',
+    address: employee.permanent_address || '',
+    bio: employee.bio || '',
+    dob: employee.date_of_birth_cv || '',
+    emergencyContact: {
+      name: employee.emergency_contact?.name || '',
+      relationship: employee.emergency_contact?.relationship || '',
+      phone: employee.emergency_contact?.phone || '',
+      address: employee.emergency_contact?.address || '',
+    },
   });
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -61,7 +47,15 @@ const EditProfile = ({ employee, onCancel }: EditProfileProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await updateEmployee(formData);
+      await updateEmployee({
+        employee_name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone_number: formData.phone,
+        permanent_address: formData.address,
+        bio: formData.bio,
+        date_of_birth_cv: formData.dob,
+        emergency_contact: formData.emergencyContact,
+      });
       toast({
         title: "Profile updated",
         description: "Your profile information has been updated successfully.",
@@ -80,44 +74,6 @@ const EditProfile = ({ employee, onCancel }: EditProfileProps) => {
     await uploadProfileImage(file);
   };
   
-  const handleProfessionalInfoUpdate = async (data: {
-    skills?: string[];
-    qualifications?: string[];
-    certifications?: string[];
-  }) => {
-    try {
-      await updateEmployee(data);
-      toast({
-        title: "Professional information updated",
-        description: "Your professional information has been updated successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Update failed",
-        description: "Failed to update professional information. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-  
-  const handleCustomFieldsUpdate = async (data: {
-    customFields: Record<string, string>;
-  }) => {
-    try {
-      await updateEmployee(data);
-      toast({
-        title: "Custom fields updated",
-        description: "Your custom fields have been updated successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Update failed",
-        description: "Failed to update custom fields. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-  
   return (
     <div>
       <h1 className="page-title">Edit Profile</h1>
@@ -134,8 +90,8 @@ const EditProfile = ({ employee, onCancel }: EditProfileProps) => {
               <Card className="md:col-span-1">
                 <CardHeader className="flex flex-col items-center">
                   <ProfileImageUpload 
-                    image={employee.profileImage}
-                    initials={`${employee.firstName[0]}${employee.lastName[0]}`}
+                    image={employee.profile_image}
+                    initials={`${employee.firstName?.[0] || ''}${employee.lastName?.[0] || ''}`}
                     onUpload={handleImageUpload}
                     isLoading={isLoading}
                   />
@@ -208,23 +164,12 @@ const EditProfile = ({ employee, onCancel }: EditProfileProps) => {
                     
                     <div className="space-y-2">
                       <Label htmlFor="address">Address</Label>
-                      <Input
+                      <Textarea
                         id="address"
                         name="address"
                         value={formData.address}
                         onChange={handleChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="emergencyContact">Emergency Contact</Label>
-                      <Input
-                        id="emergencyContact"
-                        name="emergencyContact"
-                        value={formData.emergencyContact}
-                        onChange={handleChange}
-                        placeholder="Name, Relationship, Phone Number"
+                        rows={3}
                       />
                     </div>
                     
@@ -235,41 +180,45 @@ const EditProfile = ({ employee, onCancel }: EditProfileProps) => {
                         name="bio"
                         value={formData.bio}
                         onChange={handleChange}
-                        rows={4}
+                        rows={3}
                       />
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="flex justify-between">
-                  <Button variant="outline" type="button" onClick={onCancel}>Cancel</Button>
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? "Saving..." : "Save Changes"}
-                  </Button>
-                </CardFooter>
               </Card>
             </div>
           </TabsContent>
           
           <TabsContent value="professional">
             <ProfessionalInfo
-              skills={employee.skills || []}
-              qualifications={employee.qualifications || []}
-              certifications={employee.certifications || []}
-              onUpdate={handleProfessionalInfoUpdate}
-              isEditing={true}
-              isLoading={isLoading}
+              employee={employee}
+              onUpdate={updateEmployee}
             />
           </TabsContent>
           
           <TabsContent value="custom">
             <CustomFields
-              fields={employee.customFields || {}}
-              onUpdate={handleCustomFieldsUpdate}
-              isEditing={true}
-              isLoading={isLoading}
+              fields={employee.customFields}
+              onUpdate={updateEmployee}
             />
           </TabsContent>
         </Tabs>
+        
+        <div className="mt-6 flex justify-end gap-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
       </form>
     </div>
   );

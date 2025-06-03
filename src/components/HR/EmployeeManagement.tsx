@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +10,7 @@ import RowActionMenu from "./RowActionMenu";
 import EmployeeHRCard from "./EmployeeHRCard";
 import { fetchEmployees, Employee } from "@/services/employeeService";
 import { useToast } from "@/hooks/use-toast";
+import { DataTable } from "@/components/ui/data-table";
 
 type SortField = keyof Employee | 'employee_id';
 type SortDirection = 'asc' | 'desc';
@@ -254,6 +254,7 @@ const EmployeeManagement = () => {
 
                 <Button 
                   onClick={handleAddEmployee} 
+                  data-action="add-employee"
                   className="bg-gray-700 hover:bg-gray-800 text-white"
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -264,77 +265,42 @@ const EmployeeManagement = () => {
           </div>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col p-0">
-          <div className="flex-1 relative border rounded-lg overflow-hidden">
-            <div className="h-full max-h-[calc(100vh-280px)] overflow-auto">
-              <Table className="relative">
-                <TableHeader className="sticky top-0 bg-white z-20 shadow-sm">
-                  <TableRow className="border-b">
-                    <TableHead className="w-[80px] bg-white sticky top-0 z-30 border-r">Actions</TableHead>
-                    <TableHead 
-                      className="bg-white sticky top-0 z-30 cursor-pointer hover:bg-gray-50 border-r"
-                      onClick={() => handleSort('employee_id')}
-                    >
-                      Employee ID {getSortIcon('employee_id')}
-                    </TableHead>
-                    {availableColumns.filter(col => selectedColumns.includes(col.id) && col.id !== 'employee_id').map(column => (
-                      <TableHead 
-                        key={column.id} 
-                        className="bg-white sticky top-0 z-30 cursor-pointer hover:bg-gray-50 border-r min-w-[120px]"
-                        onClick={() => handleSort(column.id as SortField)}
-                      >
-                        {column.label} {getSortIcon(column.id as SortField)}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell 
-                        colSpan={selectedColumns.length + 1}
-                        className="text-center py-6 text-gray-500"
-                      >
-                        Loading employee data...
-                      </TableCell>
-                    </TableRow>
-                  ) : filteredAndSortedEmployees.length === 0 ? (
-                    <TableRow>
-                      <TableCell 
-                        colSpan={selectedColumns.length + 1}
-                        className="text-center py-6 text-gray-500"
-                      >
-                        No employees found
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredAndSortedEmployees.map((employee) => (
-                      <TableRow key={employee.id} className="hover:bg-gray-50">
-                        <TableCell className="border-r">
-                          <RowActionMenu
-                            onViewDetails={() => handleViewDetails(employee.id)}
-                            onEdit={() => handleEdit(employee.id)}
-                            onDelete={() => handleDelete(employee.id)}
-                            onFunction2={() => handleFunction2(employee.id)}
-                            onFunction3={() => handleFunction3(employee.id)}
-                          />
-                        </TableCell>
-                        <TableCell className="border-r">{employee.employee_id}</TableCell>
-                        {availableColumns.filter(col => selectedColumns.includes(col.id) && col.id !== 'employee_id').map(column => {
-                          const key = column.id as keyof Employee;
-                          const value = employee[key];
-                          return (
-                            <TableCell key={`${employee.id}-${column.id}`} className="border-r">
-                              {formatCellValue(column, value)}
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+          <DataTable
+            data={filteredAndSortedEmployees}
+            columns={[
+              {
+                id: "employee_id",
+                label: "Employee ID",
+                accessor: "employee_id",
+                minWidth: 120
+              },
+              ...availableColumns
+                .filter(col => selectedColumns.includes(col.id) && col.id !== 'employee_id')
+                .map(col => ({
+                  id: col.id,
+                  label: col.label,
+                  accessor: col.id as keyof Employee,
+                  minWidth: 150,
+                  format: (value: any) => formatCellValue({ id: col.id }, value)
+                }))
+            ]}
+            loading={loading}
+            stickyFirstColumn
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+            renderFirstColumn={(employee) => (
+              <RowActionMenu
+                onViewDetails={() => handleViewDetails(employee.id)}
+                onEdit={() => handleEdit(employee.id)}
+                onDelete={() => handleDelete(employee.id)}
+                onFunction2={() => handleFunction2(employee.id)}
+                onFunction3={() => handleFunction3(employee.id)}
+              />
+            )}
+            emptyMessage="No employees found"
+            loadingMessage="Loading employee data..."
+          />
         </CardContent>
       </Card>
 

@@ -1,27 +1,5 @@
-
 import { create } from 'zustand';
-
-interface Employee {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  position: string;
-  department: string;
-  hireDate: string;
-  phone: string;
-  address: string;
-  bio: string;
-  profileImage: string;
-  // New fields
-  dob?: string;
-  emergencyContact?: string;
-  employmentType?: string;
-  skills?: string[];
-  qualifications?: string[];
-  certifications?: string[];
-  customFields?: Record<string, string>;
-}
+import { Employee, fetchCurrentEmployee } from '@/services/employeeService';
 
 interface EmployeeState {
   employee: Employee | null;
@@ -33,6 +11,18 @@ interface EmployeeState {
   uploadProfileImage: (file: File) => Promise<void>;
 }
 
+const mapEmployeeData = (data: Employee) => ({
+  ...data,
+  firstName: data.employee_name.split(' ')[0],
+  lastName: data.employee_name.split(' ').slice(1).join(' '),
+  position: data.title,
+  hireDate: data.contract_start_date_cv,
+  phone: data.phone_number,
+  dob: data.date_of_birth_cv,
+  bio: `${data.title} at ${data.department}`,
+  employmentType: data.contract_type,
+});
+
 export const useEmployeeStore = create<EmployeeState>((set) => ({
   employee: null,
   isLoading: false,
@@ -41,41 +31,16 @@ export const useEmployeeStore = create<EmployeeState>((set) => ({
   setEmployee: (employee) => set({ employee }),
   
   fetchEmployee: async () => {
-    set({ isLoading: true, error: null });
-    
     try {
-      // This would be a real API call in a production app
-      const mockEmployee = {
-        id: '1',
-        firstName: 'Jane',
-        lastName: 'Doe',
-        email: 'jane.doe@company.com',
-        position: 'HR Manager',
-        department: 'Human Resources',
-        hireDate: '2020-06-15',
-        phone: '(555) 123-4567',
-        address: '123 Main St, Anytown, ST 12345',
-        bio: 'Experienced HR professional with 10+ years in talent management and employee relations.',
-        profileImage: '/placeholder.svg',
-        dob: '1985-03-12',
-        employmentType: 'Full Time',
-        emergencyContact: 'John Doe, Spouse, (555) 987-6543',
-        skills: ['Employee Relations', 'Talent Acquisition', 'Performance Management', 'Training & Development'],
-        qualifications: ['SHRM-CP Certification', 'MBA Human Resources'],
-        certifications: ['SHRM Certified Professional', 'Diversity & Inclusion Certificate'],
-        customFields: {
-          'Preferred Name': 'Jane',
-          'Pronouns': 'She/Her',
-          'Remote Status': 'Hybrid',
-        }
-      };
-      
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      
-      set({ employee: mockEmployee, isLoading: false });
+      set({ isLoading: true, error: null });
+      const employeeData = await fetchCurrentEmployee();
+      const employee = mapEmployeeData(employeeData);
+      set({ employee, isLoading: false });
     } catch (error) {
-      set({ error: 'Failed to fetch employee data', isLoading: false });
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to fetch employee data', 
+        isLoading: false 
+      });
     }
   },
   

@@ -1,35 +1,30 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus } from "lucide-react";
+import { Employee } from '@/services/employeeService';
 
 interface ProfessionalInfoProps {
-  skills: string[];
-  qualifications: string[];
-  certifications: string[];
-  onUpdate: (data: { 
-    skills?: string[], 
-    qualifications?: string[],
-    certifications?: string[]
-  }) => Promise<void>;
-  isEditing: boolean;
-  isLoading?: boolean;
+  employee: Employee;
+  onUpdate: (data: Partial<Employee>) => Promise<void>;
 }
 
 const ProfessionalInfo = ({ 
-  skills, 
-  qualifications, 
-  certifications, 
+  employee,
   onUpdate,
-  isEditing,
-  isLoading = false
 }: ProfessionalInfoProps) => {
-  const [localSkills, setLocalSkills] = useState<string[]>(skills);
-  const [localQualifications, setLocalQualifications] = useState<string[]>(qualifications);
-  const [localCertifications, setLocalCertifications] = useState<string[]>(certifications);
+  // Use customFields for storing professional info
+  const [localSkills, setLocalSkills] = useState<string[]>(
+    employee.customFields?.skills?.split(',').filter(Boolean) || []
+  );
+  const [localQualifications, setLocalQualifications] = useState<string[]>(
+    employee.customFields?.qualifications?.split(',').filter(Boolean) || []
+  );
+  const [localCertifications, setLocalCertifications] = useState<string[]>(
+    employee.customFields?.certifications?.split(',').filter(Boolean) || []
+  );
   
   const [newSkill, setNewSkill] = useState('');
   const [newQualification, setNewQualification] = useState('');
@@ -70,44 +65,14 @@ const ProfessionalInfo = ({
   
   const handleSave = async () => {
     await onUpdate({
-      skills: localSkills,
-      qualifications: localQualifications,
-      certifications: localCertifications
+      customFields: {
+        ...employee.customFields,
+        skills: localSkills.join(','),
+        qualifications: localQualifications.join(','),
+        certifications: localCertifications.join(','),
+      }
     });
   };
-  
-  if (!isEditing) {
-    return (
-      <div className="space-y-8">
-        <div>
-          <h3 className="text-lg font-medium mb-4">Skills</h3>
-          <div className="flex flex-wrap gap-2">
-            {skills.map((skill, index) => (
-              <Badge key={index} variant="secondary">{skill}</Badge>
-            ))}
-          </div>
-        </div>
-        
-        <div>
-          <h3 className="text-lg font-medium mb-4">Qualifications</h3>
-          <div className="flex flex-wrap gap-2">
-            {qualifications.map((qual, index) => (
-              <Badge key={index} variant="outline">{qual}</Badge>
-            ))}
-          </div>
-        </div>
-        
-        <div>
-          <h3 className="text-lg font-medium mb-4">Certifications</h3>
-          <div className="flex flex-wrap gap-2">
-            {certifications.map((cert, index) => (
-              <Badge key={index}>{cert}</Badge>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
   
   return (
     <Card>
@@ -216,16 +181,13 @@ const ProfessionalInfo = ({
             </Button>
           </div>
         </div>
+
+        <div className="flex justify-end">
+          <Button onClick={handleSave}>
+            Save Changes
+          </Button>
+        </div>
       </CardContent>
-      <CardFooter>
-        <Button 
-          onClick={handleSave} 
-          disabled={isLoading}
-          className="w-full"
-        >
-          {isLoading ? "Saving..." : "Save Professional Information"}
-        </Button>
-      </CardFooter>
     </Card>
   );
 };

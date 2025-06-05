@@ -1,4 +1,3 @@
-
 import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { 
@@ -13,10 +12,11 @@ import {
   Briefcase,
   ChartBar,
   Bell,
-  ClockIcon
+  Sun,
+  Moon,
+  ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
@@ -29,167 +29,429 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuthStore } from "@/store/authStore";
+import { useThemeStore } from "@/store/themeStore";
 
 const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { signOut, user } = useAuthStore();
+  const { colors, applyThemeToDOM, toggleDarkMode } = useThemeStore();
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [expandedAccount, setExpandedAccount] = useState(false);
+  const [activeTab, setActiveTab] = useState('');
+  const [isTabsDropdownOpen, setIsTabsDropdownOpen] = useState(false);
   const currentPath = location.pathname;
   const mainSection = currentPath.split('/')[1] || 'profile';
   
+  // Apply theme on mount and when colors change
+  useEffect(() => {
+    if (colors) {
+      applyThemeToDOM(colors);
+    }
+  }, [colors, applyThemeToDOM]);
+
   // Determine which section we're in (Personal or HR)
   const isHrSection = currentPath.startsWith('/hr');
   const isSettingsPage = currentPath === '/settings';
   
-  // Employee self-service menu items (for tabs)
-  const employeeTabItems = [
-    { to: "/profile", label: "Profile", icon: <User className="w-5 h-5" /> },
-    { to: "/attendance", label: "Attendance", icon: <Clock className="w-5 h-5" /> },
-    { to: "/salary", label: "Salary", icon: <Wallet className="w-5 h-5" /> },
-    { to: "/shifts", label: "Shift", icon: <Calendar className="w-5 h-5" /> },
-    { to: "/self-service", label: "Self-service", icon: <UserRound className="w-5 h-5" /> },
-    { to: "/documents", label: "Documents", icon: <FileText className="w-5 h-5" /> }
+  // Employee self-service sections and tabs
+  const employeeSections = [
+    { 
+      to: "/profile", 
+      label: "Profile", 
+      icon: <User className="w-4 h-4" />,
+      tabs: []
+    },
+    { 
+      to: "/attendance", 
+      label: "Attendance", 
+      icon: <Clock className="w-4 h-4" />,
+      tabs: [
+        { to: "/attendance", label: "Attendance" },
+        { to: "/timestamp", label: "Timestamp" },
+        { to: "/shifts", label: "Shift" },
+        { to: "/leave", label: "Leave" }
+      ]
+    },
+    { 
+      to: "/salary", 
+      label: "Salary", 
+      icon: <Wallet className="w-4 h-4" />,
+      tabs: []
+    },
+    { 
+      to: "/self-service", 
+      label: "Self-service", 
+      icon: <UserRound className="w-4 h-4" />,
+      tabs: []
+    },
+    { 
+      to: "/documents", 
+      label: "Documents", 
+      icon: <FileText className="w-4 h-4" />,
+      tabs: []
+    }
   ];
 
-  // HR personnel menu items (for tabs)
-  const hrTabItems = [
-    { to: "/hr/employee-management", label: "Employee Management", icon: <Users className="w-5 h-5" /> },
-    { to: "/hr/raw-attendance", label: "Raw Attendance", icon: <ClockIcon className="w-5 h-5" /> },
-    { to: "/hr/attendance-leave", label: "Attendance & Leave", icon: <Calendar className="w-5 h-5" /> },
-    { to: "/hr/payroll", label: "Payroll", icon: <Wallet className="w-5 h-5" /> },
-    { to: "/hr/budget-planning", label: "Budget Planning", icon: <ChartBar className="w-5 h-5" /> },
-    { to: "/hr/budget-management", label: "Budget Management", icon: <Banknote className="w-5 h-5" /> }
+  // HR personnel sections and tabs
+  const hrSections = [
+    { 
+      to: "/hr/employee-management", 
+      label: "Employee Management", 
+      icon: <Users className="w-4 h-4" />,
+      tabs: []
+    },
+    { 
+      to: "/hr/attendance-leave", 
+      label: "Attendance & Leave", 
+      icon: <Calendar className="w-4 h-4" />,
+      tabs: [
+        { to: "/hr/attendance-leave", label: "Attendance" },
+        { to: "/hr/attendance-leave/timestamp", label: "Timestamp" },
+        { to: "/hr/attendance-leave/shifts", label: "Shift" },
+        { to: "/hr/attendance-leave/leave", label: "Leave" }
+      ]
+    },
+    { 
+      to: "/hr/payroll", 
+      label: "Payroll", 
+      icon: <Wallet className="w-4 h-4" />,
+      tabs: []
+    },
+    { 
+      to: "/hr/budget-management", 
+      label: "Budget Management", 
+      icon: <Banknote className="w-4 h-4" />,
+      tabs: [
+        { to: "/hr/budget-planning", label: "Budget Planning" },
+        { to: "/hr/budget-management", label: "Budget Management" }
+      ]
+    }
   ];
 
-  // Get the appropriate tab items based on section
-  const currentTabItems = isHrSection ? hrTabItems : employeeTabItems;
+  // Get the appropriate sections based on current module
+  const currentSections = isHrSection ? hrSections : employeeSections;
 
-  // Get the current active tab value based on the current path
-  const getCurrentActiveTab = () => {
-    return currentPath;
+  // Get current section and its tabs
+  const getCurrentSection = () => {
+    if (isSettingsPage) return null;
+    const section = currentSections.find(section => 
+      currentPath.startsWith(section.to) || 
+      section.tabs.some(tab => tab.to === currentPath)
+    );
+    return section;
+  };
+
+  const currentSection = getCurrentSection();
+  const currentTabs = currentSection?.tabs || [];
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Sign out failed:', error);
+    }
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header - changed to dark gray with white text */}
-      <header className="bg-gray-800 py-1.5 px-4 text-white shadow-md flex justify-between items-center z-10">
-        <div className="flex items-center">
-          <h1 className="font-bold text-base text-white">HR Management System</h1>
-        </div>
-        <div className="flex items-center space-x-4">
-          {/* Notification icon */}
-          <Bell className="w-4 h-4 cursor-pointer hover:text-gray-200 text-white" />
-          
-          {/* Account dropdown - showing employee 1009 */}
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center space-x-1 cursor-pointer hover:text-gray-200 text-white">
-              <UserRound className="w-4 h-4" />
-              <span className="hidden md:inline text-sm">Employee 1009</span>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-white border border-gray-200 shadow-lg">
-              <DropdownMenuItem className="cursor-pointer text-gray-700">
-                Account Details
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="cursor-pointer text-gray-700" 
-                onClick={() => navigate('/settings')}
-              >
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer text-gray-700">
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - icons only with tooltips */}
-        <div className="bg-white shadow-md z-20 flex flex-col w-14 fixed h-[calc(100vh-40px)]">
-          {/* Personal section */}
-          <div className="px-2 py-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <NavLink
-                    to="/profile"
-                    className={cn(
-                      "flex items-center justify-center py-2 px-2 rounded-md transition-colors w-10 h-10 mx-auto",
-                      (!isHrSection && !isSettingsPage)
-                        ? "bg-gray-600 text-white font-bold"
-                        : "text-gray-600 hover:bg-gray-100"
-                    )}
-                  >
-                    <User className="w-5 h-5" />
-                  </NavLink>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="bg-gray-800 text-white">
-                  <p>Personal</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-
-          {/* HR Core section */}
-          <div className="px-2 py-1">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <NavLink
-                    to="/hr/employee-management"
-                    className={cn(
-                      "flex items-center justify-center py-2 px-2 rounded-md transition-colors w-10 h-10 mx-auto",
-                      (isHrSection && !isSettingsPage)
-                        ? "bg-gray-600 text-white font-bold"
-                        : "text-gray-600 hover:bg-gray-100"
-                    )}
-                  >
-                    <Briefcase className="w-5 h-5" />
-                  </NavLink>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="bg-gray-800 text-white">
-                  <p>HR Core</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </div>
-
-        {/* Main content - with fixed position */}
-        <div className="flex-1 overflow-auto ml-14 bg-gray-50">
-          {/* Tabbed Navigation - only show for Personal and HR sections */}
-          {!isSettingsPage && (
-            <div className="bg-white border-b sticky top-0 z-10 py-1 px-4">
-              <Tabs value={getCurrentActiveTab()} className="w-full">
-                <TabsList className="w-full flex overflow-x-auto pb-1 scrollbar-hide bg-transparent h-auto p-0 space-x-1">
-                  {currentTabItems.map((item) => (
-                    <TabsTrigger 
-                      key={item.to}
-                      value={item.to}
-                      className={cn(
-                        "flex items-center px-3 py-2 rounded-md text-sm transition-colors border",
-                        currentPath === item.to
-                          ? "bg-gray-700 text-white font-bold border-gray-700"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-transparent"
-                      )}
-                      onClick={() => navigate(item.to)}
-                    >
-                      <div className="flex items-center">
-                        <span className="mr-2">{item.icon}</span>
-                        <span>{item.label}</span>
-                      </div>
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-            </div>
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar */}
+      <div 
+        className={cn(
+          "fixed left-2.5 top-2.5 bottom-2.5 z-[60] transition-all duration-300 ease-in-out rounded-lg flex flex-col",
+          isSidebarExpanded ? "w-64" : "w-16"
+        )}
+        style={{ backgroundColor: colors?.sidebar?.background }}
+        onMouseEnter={() => setIsSidebarExpanded(true)}
+        onMouseLeave={() => setIsSidebarExpanded(false)}
+      >
+        {/* HRIS Logo */}
+        <div className="p-4 border-b" style={{ borderColor: colors?.sidebar?.divider }}>
+          {isSidebarExpanded && (
+            <h1 className="font-bold text-xl" style={{ color: colors?.sidebar?.activeItemText }}>
+              HRIS
+            </h1>
           )}
-          
-          <div className="p-5">
-            <div className="bg-white rounded-lg shadow-sm p-5 min-h-full">
-              <Outlet />
+        </div>
+
+        {/* Notification */}
+        <div className="p-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  className={cn(
+                    "p-2 rounded-md flex items-center sidebar-item",
+                    isSidebarExpanded ? "w-full" : "justify-center"
+                  )}
+                >
+                  <div className="relative">
+                    <Bell className="w-4 h-4 text-white" />
+                    <span className="notification-badge">3</span>
+                  </div>
+                  {isSidebarExpanded && <span className="ml-3 text-sm">Notifications</span>}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent 
+                side="right" 
+                className="bg-gray-800 text-white"
+                style={{
+                  visibility: isSidebarExpanded ? 'hidden' : 'visible'
+                }}
+              >
+                <p>Notifications</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        {/* Main Navigation */}
+        <div className="flex-1 overflow-y-auto py-2">
+          {/* Personal Module */}
+          <div className="px-2 mb-4">
+            {/* Personal Group Label */}
+            {isSidebarExpanded && (
+              <div className="px-2 py-1.5 mb-1">
+                <span className="text-sm font-semibold text-white">
+                  Personal
+                </span>
+              </div>
+            )}
+
+            {/* Personal Module Sections */}
+            <div className="space-y-1">
+              {employeeSections.map((section) => (
+                <NavLink
+                  key={section.to}
+                  to={section.to}
+                  className={({ isActive }) => cn(
+                    "flex items-center w-full p-2 rounded-md text-sm sidebar-item",
+                    isActive ? "bg-white/20" : ""
+                  )}
+                  style={{ 
+                    color: colors?.sidebar?.itemText
+                  }}
+                >
+                  <div className="w-4 h-4 flex items-center justify-center">{section.icon}</div>
+                  {isSidebarExpanded && <span className="ml-3">{section.label}</span>}
+                </NavLink>
+              ))}
             </div>
           </div>
+
+          {/* HR Core Module */}
+          <div className="px-2">
+            {/* HR Core Group Label */}
+            {isSidebarExpanded && (
+              <div className="px-2 py-1.5 mb-1">
+                <span className="text-sm font-semibold text-white">
+                  HR Core
+                </span>
+              </div>
+            )}
+
+            {/* HR Core Module Sections */}
+            <div className="space-y-1">
+              {hrSections.map((section) => (
+                <NavLink
+                  key={section.to}
+                  to={section.to}
+                  className={({ isActive }) => cn(
+                    "flex items-center w-full p-2 rounded-md text-sm sidebar-item",
+                    isActive ? "bg-white/20" : ""
+                  )}
+                  style={{ 
+                    color: colors?.sidebar?.itemText
+                  }}
+                >
+                  <div className="w-4 h-4 flex items-center justify-center">{section.icon}</div>
+                  {isSidebarExpanded && <span className="ml-3">{section.label}</span>}
+                </NavLink>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Items */}
+        <div className="mt-auto">
+          {/* Account */}
+          <div className="p-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => navigate('/settings')}
+                    className={cn(
+                      "p-2 rounded-md flex items-center sidebar-item",
+                      isSidebarExpanded ? "w-full" : "justify-center"
+                    )}
+                  >
+                    <UserRound className="w-4 h-4" />
+                    {isSidebarExpanded && <span className="ml-3 text-sm">Account</span>}
+                  </button>
+                </TooltipTrigger>
+                {!isSidebarExpanded && (
+                  <TooltipContent side="right" className="bg-gray-800 text-white">
+                    <p>Account</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+
+          {/* Dark Mode Toggle */}
+          <div className="p-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={toggleDarkMode}
+                    className={cn(
+                      "p-2 rounded-md flex items-center sidebar-item",
+                      isSidebarExpanded ? "w-full" : "justify-center"
+                    )}
+                  >
+                    {colors?.isDarkMode ? (
+                      <>
+                        <Sun className="w-4 h-4" />
+                        {isSidebarExpanded && <span className="ml-3 text-sm">Light Mode</span>}
+                      </>
+                    ) : (
+                      <>
+                        <Moon className="w-4 h-4" />
+                        {isSidebarExpanded && <span className="ml-3 text-sm">Dark Mode</span>}
+                      </>
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="bg-gray-800 text-white">
+                  <p>Toggle theme</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 ml-20 h-screen overflow-y-auto">
+        {!isSettingsPage && currentSection && (
+          <div className="sticky top-0 z-50 border-b bg-theme-global" style={{ 
+            borderColor: colors?.isDarkMode ? 'rgba(255, 255, 255, 0.2)' : undefined 
+          }}>
+            {/* Hierarchical Breadcrumb Navigation */}
+            <div className="flex items-center h-12 px-4">
+              <div className="flex items-center gap-2">
+                {/* Module Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-primary/10 transition-colors">
+                    <div className="flex items-center">
+                      {isHrSection ? (
+                        <Briefcase className={cn(
+                          "w-4 h-4 mr-1.5",
+                          colors?.isDarkMode ? "text-white" : "text-primary"
+                        )} />
+                      ) : (
+                        <User className={cn(
+                          "w-4 h-4 mr-1.5",
+                          colors?.isDarkMode ? "text-white" : "text-primary"
+                        )} />
+                      )}
+                      <span className={cn(
+                        "text-sm font-medium",
+                        colors?.isDarkMode ? "text-white" : "text-primary"
+                      )}>
+                        {isHrSection ? 'HR Core' : 'Personal'}
+                      </span>
+                      <ChevronRight className={cn(
+                        "w-4 h-4 ml-1",
+                        colors?.isDarkMode ? "text-white/60" : "text-gray-400"
+                      )} />
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/profile')}
+                      className={cn(!isHrSection && "text-primary")}
+                    >
+                      <User className="w-4 h-4 mr-1.5" />
+                      Personal
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/hr/employee-management')}
+                      className={cn(isHrSection && "text-primary")}
+                    >
+                      <Briefcase className="w-4 h-4 mr-1.5" />
+                      HR Core
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Section Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-primary/5">
+                    <div className="flex items-center">
+                      {currentSection?.icon && (
+                        <div className="w-4 h-4 mr-1.5">
+                          {currentSection.icon}
+                        </div>
+                      )}
+                      <span className="text-sm font-medium text-primary">
+                        {currentSection?.label}
+                      </span>
+                      {currentTabs.length > 0 && (
+                        <ChevronRight className="w-4 h-4 ml-1 text-gray-400" />
+                      )}
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {currentSections.map((section) => (
+                      <DropdownMenuItem
+                        key={section.to}
+                        onClick={() => navigate(section.to)}
+                        className={cn(section === currentSection && "text-primary")}
+                      >
+                        {section.icon && (
+                          <div className="w-4 h-4 mr-1.5">
+                            {section.icon}
+                          </div>
+                        )}
+                        {section.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Tab Dropdown (only if section has tabs) */}
+                {currentTabs.length > 0 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-primary/5">
+                      <span className="text-sm font-medium text-primary">
+                        {currentTabs.find(tab => tab.to === currentPath)?.label || currentTabs[0].label}
+                      </span>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {currentTabs.map((tab) => (
+                        <DropdownMenuItem
+                          key={tab.to}
+                          onClick={() => navigate(tab.to)}
+                          className={cn(tab.to === currentPath && "text-primary")}
+                        >
+                          {tab.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="p-4 main-content-area">
+          <Outlet />
         </div>
       </div>
     </div>

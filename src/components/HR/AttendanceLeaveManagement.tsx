@@ -1156,10 +1156,30 @@ const AttendanceLeaveManagement = () => {
     <div className="pt-0 min-h-screen bg-secondary">
       <Tabs defaultValue="attendance" className="space-y-2">
         <TabsList className="bg-background sticky top-0 z-30 w-full">
-          <TabsTrigger value="attendance">Attendance</TabsTrigger>
-          <TabsTrigger value="timestamp">Timestamp</TabsTrigger>
-          <TabsTrigger value="shift">Shift</TabsTrigger>
-          <TabsTrigger value="leave">Leave</TabsTrigger>
+          <TabsTrigger 
+            value="attendance"
+            className="data-[state=active]:bg-primary data-[state=active]:text-white"
+          >
+            Attendance
+          </TabsTrigger>
+          <TabsTrigger 
+            value="timestamp"
+            className="data-[state=active]:bg-primary data-[state=active]:text-white"
+          >
+            Timestamp
+          </TabsTrigger>
+          <TabsTrigger 
+            value="shift"
+            className="data-[state=active]:bg-primary data-[state=active]:text-white"
+          >
+            Shift
+          </TabsTrigger>
+          <TabsTrigger 
+            value="leave"
+            className="data-[state=active]:bg-primary data-[state=active]:text-white"
+          >
+            Leave
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="attendance" className="m-0">

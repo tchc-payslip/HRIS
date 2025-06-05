@@ -3,11 +3,48 @@
 @tailwind utilities;
 
 @layer base {
+  * {
+    @apply border-border;
+  }
+  
+  /* Remove background-color from body */
+  body {
+    color: var(--foreground);
+    font-size: 14px;
+  }
+
+  /* Add a wrapper div that will handle the background */
+  #root {
+    background-color: var(--theme-global-bg);
+    min-height: 100vh;
+  }
+
+  h1 {
+    @apply text-xl;
+  }
+  h2 {
+    @apply text-lg;
+  }
+  h3 {
+    @apply text-base;
+  }
+
   :root {
     --theme-primary: #000000;
     --theme-secondary: #a6a8ac;
-    --theme-table-header: #f6f6f6;
+    --theme-global-bg: #ffffff;
+    --theme-global-bg-2: #f6f6f6;
+    --theme-sidebar-bg: var(--theme-primary);
+    --theme-sidebar-item-text: rgba(255, 255, 255, 0.7);
+    --theme-sidebar-item-hover: #ffffff;
+    --theme-sidebar-active-text: #ffffff;
+    --theme-sidebar-active-bg: rgba(255, 255, 255, 0.1);
+    --theme-sidebar-divider: rgba(255, 255, 255, 0.1);
+    --theme-main-content-bg: var(--theme-global-bg);
+    --theme-main-content-bg-darker: var(--theme-global-bg);
+    --theme-component-bg: var(--theme-global-bg-2);
 
+    /* These are now lower priority */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -38,6 +75,65 @@
   }
 
   .dark {
+    --theme-primary: #F79009;
+    --theme-secondary: #2d2d3d;
+    --theme-global-bg: #252525;
+    --theme-global-bg-2: #3e3e3e;
+    --theme-sidebar-bg: var(--theme-primary);
+    --theme-sidebar-item-text: rgba(255, 255, 255, 0.7);
+    --theme-sidebar-item-hover: #ffffff;
+    --theme-sidebar-active-text: #ffffff;
+    --theme-sidebar-active-bg: rgba(255, 255, 255, 0.1);
+    --theme-sidebar-divider: rgba(255, 255, 255, 0.2);
+    --theme-main-content-bg: var(--theme-global-bg);
+    --theme-main-content-bg-darker: var(--theme-global-bg);
+    --theme-component-bg: var(--theme-global-bg-2);
+
+    /* Override backgrounds for all components in dark mode */
+    .bg-white,
+    .card,
+    .dropdown-content,
+    .popover-content,
+    .status-card,
+    .notification-item,
+    [class*="bg-gray-"],
+    [class*="bg-slate-"],
+    [class*="bg-zinc-"],
+    [class*="bg-neutral-"],
+    [class*="bg-stone-"] {
+      background-color: var(--theme-global-bg-2) !important;
+    }
+
+    /* Component borders for better visibility */
+    .card,
+    .status-card,
+    .notification-item {
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Ensure text remains visible */
+    .text-gray-600,
+    .text-gray-500,
+    .text-slate-600,
+    .text-slate-500 {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Border colors */
+    .border,
+    .border-t,
+    .border-b,
+    .border-l,
+    .border-r {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Hover states */
+    .hover\:bg-gray-50:hover,
+    .hover\:bg-slate-50:hover {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -63,25 +159,6 @@
     --sidebar-ring: 263.4 70% 50.4%;
     --sidebar-accent: 217.2 32.6% 17.5%;
     --sidebar-accent-foreground: 210 20% 98%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-    font-size: 14px;
-  }
-  h1 {
-    @apply text-xl;
-  }
-  h2 {
-    @apply text-lg;
-  }
-  h3 {
-    @apply text-base;
   }
 }
 
@@ -137,26 +214,44 @@ header {
 
 /* Table header styles */
 thead tr {
-  background-color: var(--theme-table-header) !important;
+  background-color: transparent !important;
 }
 
 /* Button styles */
 .btn-primary, 
 button[data-variant="primary"],
-button[data-state="active"] {
+button[data-state="active"],
+.button-primary {
   background-color: var(--theme-primary) !important;
   color: white !important;
+  transition: opacity 0.2s ease-in-out !important;
 }
 
 .btn-primary:hover,
-button[data-variant="primary"]:hover {
-  background-color: var(--theme-secondary) !important;
-  color: var(--theme-primary) !important;
+button[data-variant="primary"]:hover,
+.button-primary:hover {
+  opacity: 0.9 !important;
 }
 
-.btn-secondary {
-  background-color: var(--theme-secondary) !important;
-  color: var(--theme-primary) !important;
+/* Active tab styles */
+[role="tab"][data-state="active"] {
+  background-color: var(--theme-primary) !important;
+  color: white !important;
+  border: none !important;
+}
+
+/* Dropdown trigger styles */
+.dropdown-trigger {
+  transition: background-color 0.2s ease-in-out;
+}
+
+.dropdown-trigger:hover {
+  background-color: rgba(var(--theme-primary), 0.1);
+}
+
+/* Remove table header background */
+thead tr {
+  background-color: transparent !important;
 }
 
 /* Sidebar and Tab styles */
@@ -222,4 +317,258 @@ button[data-action="add-employee"]:hover {
 .text-2xl {
   font-size: 20px;
   line-height: 30px;
+}
+
+/* Chrome-style tab styles */
+.tab-container {
+  position: relative;
+  height: 100%;
+}
+
+.tab-item {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.tab-item.active {
+  background-color: var(--theme-main-content-bg);
+  border-top: 2px solid var(--theme-primary);
+  color: var(--theme-primary);
+}
+
+.tab-item.active::before,
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 1rem;
+  height: 1rem;
+  background-color: var(--theme-main-content-bg);
+}
+
+.tab-item.active::before {
+  left: -1rem;
+  border-bottom-right-radius: 1rem;
+  background-image: radial-gradient(circle at bottom right, transparent 8px, var(--theme-main-content-bg) 9px);
+}
+
+.tab-item.active::after {
+  right: -1rem;
+  border-bottom-left-radius: 1rem;
+  background-image: radial-gradient(circle at bottom left, transparent 8px, var(--theme-main-content-bg) 9px);
+}
+
+/* Sidebar styles */
+.sidebar {
+  transition: width 0.3s ease;
+  will-change: width;
+}
+
+/* Update sidebar text and icon colors */
+[data-sidebar="menu-button"],
+[data-sidebar="group-label"],
+[data-sidebar="input"],
+.sidebar button,
+.sidebar a {
+  color: #ffffff !important;
+}
+
+/* Remove sidebar dividers */
+.sidebar .border-b,
+.sidebar .border-t {
+  border: none !important;
+}
+
+/* Notification badge in sidebar */
+.notification-badge {
+  background-color: #ffffff;
+  color: var(--theme-primary);
+  padding: 1px 6px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-weight: 600;
+}
+
+/* Sidebar styles */
+.bg-theme-sidebar {
+  background-color: var(--theme-sidebar-bg);
+}
+
+.text-theme-sidebar-item {
+  color: var(--theme-sidebar-item-text);
+}
+
+.text-theme-sidebar-item-hover {
+  color: var(--theme-sidebar-item-hover);
+}
+
+.text-theme-sidebar-active {
+  color: var(--theme-sidebar-active-text);
+}
+
+.bg-theme-sidebar-active {
+  background-color: var(--theme-sidebar-active-bg);
+}
+
+.border-theme-sidebar-divider {
+  border-color: var(--theme-sidebar-divider);
+}
+
+/* Main content styles */
+.bg-theme-main-content {
+  background-color: var(--theme-main-content-bg);
+}
+
+.bg-theme-main-content-darker {
+  background-color: var(--theme-main-content-bg-darker);
+}
+
+/* Dark mode styles */
+.dark .bg-white {
+  background-color: var(--theme-component-bg);
+}
+
+.dark .text-gray-600 {
+  color: var(--theme-sidebar-item-text);
+}
+
+.dark .border-b {
+  border-color: var(--theme-sidebar-divider);
+}
+
+.dark .hover\:bg-gray-50:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark .active-tab {
+  background-color: var(--theme-component-bg);
+}
+
+.dark .active-tab::before,
+.dark .active-tab::after {
+  background-color: var(--theme-main-content-bg);
+}
+
+/* Dark mode overrides */
+.dark {
+  /* Component backgrounds */
+  .bg-white,
+  .card,
+  .dropdown-content,
+  .popover-content,
+  .dialog-content,
+  .sheet-content,
+  .alert-dialog-content {
+    background-color: var(--theme-component-bg) !important;
+  }
+
+  /* Text colors */
+  .text-gray-600 {
+    color: var(--theme-sidebar-item-text);
+  }
+
+  /* Border colors */
+  .border-b {
+    border-color: var(--theme-sidebar-divider);
+  }
+
+  /* Hover states */
+  .hover\:bg-gray-50:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Active states */
+  .active-tab {
+    background-color: var(--theme-component-bg);
+  }
+
+  /* Global background */
+  .bg-background,
+  [class*="bg-background"] {
+    background-color: var(--theme-global-bg) !important;
+  }
+}
+
+/* Utility classes */
+.bg-theme-component {
+  background-color: var(--theme-component-bg);
+}
+
+.text-theme-primary {
+  color: var(--theme-primary);
+}
+
+.border-theme-divider {
+  border-color: var(--theme-sidebar-divider);
+}
+
+/* Global background utility class */
+.bg-theme-global {
+  background-color: var(--theme-global-bg) !important;
+}
+
+.bg-theme-global-2 {
+  background-color: var(--theme-global-bg-2) !important;
+}
+
+/* Override element style for main content area */
+.main-content-area {
+  background-color: var(--theme-global-bg) !important;
+  min-height: calc(100vh - 48px);
+}
+
+/* Override shadcn-ui components to use our theme */
+.bg-background,
+[class*="bg-background"] {
+  background-color: var(--theme-global-bg) !important;
+}
+
+/* Component backgrounds should use component bg */
+.card,
+.dropdown-content,
+.popover-content,
+.dialog-content,
+.sheet-content,
+.alert-dialog-content {
+  background-color: var(--theme-component-bg) !important;
+}
+
+/* Override the .bg-card class */
+.bg-card {
+  background-color: var(--theme-global-bg-2) !important;
+}
+
+/* Also override any Tailwind card classes */
+.card {
+  background-color: var(--theme-global-bg-2) !important;
+}
+
+/* Remove any bg-secondary background color */
+.bg-secondary {
+  background-color: transparent !important;
+}
+
+/* Sidebar hover effects */
+.sidebar-item:hover,
+[data-sidebar] button:hover,
+[data-sidebar] a:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Update sidebar icon colors */
+[data-sidebar] svg {
+  color: #ffffff !important;
 }
